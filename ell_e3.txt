@@ -1,0 +1,485 @@
+=== [4] ec=2 | !gdown --folder https://drive.google.com/drive/folders/1MRPXz79Lu_JGLl
+Retrieving folder contents
+Processing file 1x5JdNWX8fVM3FO8I0wOLDAeh2qaB53uV AddrAddr_edgelist.csv
+Processing file 16eWZTe-dsjEqgsOqFtg78m4fYhcxKlmZ AddrTx_edgelist.csv
+Processing file 1SYpun0DMDt-h3sbI60G55jNsfwnFTHXg TxAddr_edgelist.csv
+Processing file 1DiBxn8TXdbJqoSw58pYUeaqO3oOKhuQO txs_classes.csv
+Processing file 1Q2yG_CIDvfdGP-fKVPSw979EYgQukjz5 txs_edgelist.csv
+Processing file 19q09IFhfkOOBOXvn_dKhWjILJtjCcsjc txs_features.csv
+Processing file 1ZaACVE4wSIx7r8Z9ze7ExQnJ0wzGrVkp wallets_classes.csv
+Processing file 1YLCIn8rPAh4FjKiZynblU2rLx-Fxr2WA wallets_features_classes_combined.csv
+Processing file 1mhrrobYdnaxYBIVK06EpKB2EwV-ERlce wallets_features.csv
+Retrieving folder contents completed
+Building directory structure
+Building directory structure completed
+Downloading...
+From (original): https://drive.google.com/uc?id=1x5JdNWX8fVM3FO8I0wOLDAeh2qaB53uV
+From (redirected): https://drive.google.com/uc?id=1x5JdNWX8fVM3FO8I0wOLDAeh2qaB53uV&confirm=t&uuid=9df150fa-0178-47bb-bc30-d57c0b44c82d
+To: /content/elliptic_pp/AddrAddr_edgelist.csv
+100% 201M/201M [00:03<00:00, 57.1MB/s]
+Downloading...
+From: https://drive.google.com/uc?id=16eWZTe-dsjEqgsOqFtg78m4fYhcxKlmZ
+To: /content/elliptic_pp/AddrTx_edgelist.csv
+100% 21.2M/21.2M [00:00<00:00, 32.3MB/s]
+Downloading...
+From: https://drive.google.com/uc?id=1SYpun0DMDt-h3sbI60G55jNsfwnFTHXg
+To: /content/elliptic_pp/TxAddr_edgelist.csv
+100% 36.7M/36.7M [00:00<00:00, 65.2MB/s]
+Downloading...
+From: https://drive.google.com/uc?id=1DiBxn8TXdbJqoSw58pYUeaqO3oOKhuQO
+To: /content/elliptic_pp/txs_classes.csv
+100% 2.36M/2.36M [00:00<00:00, 13.8MB/s]
+Downloading...
+From: https://drive.google.com/uc?id=1Q2yG_CIDvfdGP-fKVPSw979EYgQukjz5
+To: /content/elliptic_pp/txs_edgelist.csv
+100% 4.47M/4.47M [00:00<00:00, 11.5MB/s]
+Downloading...
+From (original): https://drive.google.com/uc?id=19q09IFhfkOOBOXvn_dKhWjILJtjCcsjc
+From (redirected): https://drive.google.com/uc?id=19q09IFhfkOOBOXvn_dKhWjILJtjCcsjc&confirm=t&uuid=f7faeb72-0a90-483c-b868-7b98b67ac7b7
+To: /content/elliptic_pp/txs_features.csv
+100% 695M/695M [00:09<00:00, 70.9MB/s]
+Downloading...
+From: https://drive.google.com/uc?id=1ZaACVE4wSIx7r8Z9ze7ExQnJ0wzGrVkp
+To: /content/elliptic_pp/wallets_classes.csv
+100% 30.4M/30.4M [00:00<00:00, 78.1MB/s]
+Downloading...
+From (original): https://drive.google.com/uc?id=1YLCIn8rPAh4FjKiZynblU2rLx-Fxr2WA
+From (redirected): https://drive.google.com/uc?id=1YLCIn8rPAh4FjKiZynblU2rLx-Fxr2WA&confirm=t&uuid=d8ded0e4-6a86-4d86-99c4-4de3cd2894bd
+To: /content/elliptic_pp/wallets_features_classes_combined.csv
+100% 609M/609M [00:07<00:00, 86.4MB/s]
+Downloading...
+From (original): https://drive.google.com/uc?id=1mhrrobYdnaxYBIVK06EpKB2EwV-ERlce
+From (redirected): https://drive.google.com/uc?id=1mhrrobYdnaxYBIVK06EpKB2EwV-ERlce&confirm=t&uuid=05b8ef4c-df39-4e14-b378-7b4cabb01c26
+To: /content/elliptic_pp/wallets_features.csv
+100% 606M/606M [00:05<00:00, 104MB/s]
+Download completed
+
+=== [5] ec=3 | # pip install pandas numpy networkx scipy scikit-learn xgboost lightgb
+Mounted at /content/drive
+ELLIPTIC_DIR=elliptic_pp  TEMPORAL_CUT=34  ROLLING_ORIGINS=[24, 29, 34, 39, 44]
+
+=== [7] ec=4 | def find_file(name, root=ELLIPTIC_DIR):
+Yuklendi (12s): 203,769 islem | 234,355 tx-tx kenar | 822,942 cuzdan | 477,117 giris + 837,124 cikis kenari
+Etiketli: 46,564 (illicit 4,545, oran %9.76) | etiketsiz: 157,205
+Islem tablosunda olmayan txId nedeniyle atilan kenar: {'tx_edges': 0, 'addr_tx': 0, 'tx_addr': 0}
+
+=== [9] ec=5 | _cross = float((STEP[TX_EDGES.a.values] != STEP[TX_EDGES.b.values]).me
+Adimlar ARASI tx-tx kenar orani: %0.000  (Elliptic: kenarlar adim icinde -> ~0 beklenir)
+Birden cok adimda gorunen cuzdan orani: %7.5  (ortalama 1.12 adim)
+Giris cuzdani olmayan etiketli islem orani: %1.11  (bunlar her zaman cold sayilir)
+
+P3 (1-34 / 35-49): kappa = 0.302  (n_test=16,670)
+  rolling origin 24 -> test 25-29: kappa = 0.415 (n=2,775)
+  rolling origin 29 -> test 30-34: kappa = 0.352 (n=3,513)
+  rolling origin 34 -> test 35-39: kappa = 0.396 (n=5,486)
+  rolling origin 39 -> test 40-44: kappa = 0.248 (n=7,458)
+  rolling origin 44 -> test 45-49: kappa = 0.480 (n=3,726)
+
+Adim basina etiket dagilimi (ilk / son 3 adim):
+class   1     2     3
+step                 
+1      17  2130  5733
+2      18  1099  3427
+3      11  1268  5342
+47     22   824  4275
+48     36   435  2483
+49     56   420  1978
+
+=== [13] ec=7 | # ============================================================
+A1 OOF target encoding hazır (TE_N_SPLITS=5, TE_SMOOTHING=20.0).
+
+=== [14] ec=8 | # ============================================================
+A2 imputasyon yardimcisi hazir (IMPUTE_POLICY=row_median).
+
+=== [15] ec=9 | def sparse_pagerank(rows, cols, n, alpha=PAGERANK_ALPHA, iters=PAGERAN
+Adim ici tx grafi oznitelikleri hazir (0s).
+
+=== [17] ec=10 | SIDE_EDGES = {'ent': E_IN, 'cp': E_OUT}          # ent = giris cuzdanl
+compute_fold_features hazir (Elliptic++: cuzdan gecmisi, cuzdan-islem PageRank, OOF cuzdan fraud orani).
+
+=== [19] ec=11 | FEATURES_A  = LOCAL_FEATS + TX_STATS                                  
+  A (ham)             : 108 oznitelik
+  B (A+davranışsal)   : 128 oznitelik
+  C (B+graf)          : 140 oznitelik
+  D (A+graf)          : 120 oznitelik
+  A+AGG (referans)    : 180 oznitelik
+  davranissal=20 | graf=12 (tx grafi 4, cuzdan PageRank + fraud orani)
+
+=== [21] ec=12 | def get_models(fast=FAST_MODE):
+Modeller ve metrikler hazır.
+
+=== [23] ec=13 | # ============================================================
+A6 artefakt denetimi yardimcilari hazir.
+
+=== [24] ec=14 | RUN_AUDIT = True
+========================================================================================
+ARTEFAKT DENETIMI — Elliptic++ (egitim: adim 1-34; graf: cuzdan-islem)
+========================================================================================
+                             Kriter Kabul  Deger    Sonuc
+  C1  En iyi tek-oznitelik AUC (a*) < 0.9 0.8663    GECTI
+    C2  En iyi basit kural F1 (F1*) < 0.5 0.7744 !! KALDI
+C3  Tek islemli varlik orani (rho1) < 0.5 0.9329 !! KALDI
+     C4  Kenar/dugum orani (lambda) > 1.5 1.2643 !! KALDI
+  C5  En buyuk bilesen payi (gamma) > 0.8 1.0000    GECTI
+
+En yuksek tek-oznitelik AUC (ilk 10):
+             feature    kind    auc
+                size sayisal 0.8663
+    Local_feature_53 sayisal 0.8548
+    Local_feature_55 sayisal 0.8364
+    Local_feature_90 sayisal 0.8320
+num_output_addresses sayisal 0.8123
+     Local_feature_5 sayisal 0.8114
+    Local_feature_14 sayisal 0.8113
+    Local_feature_29 sayisal 0.8085
+    Local_feature_23 sayisal 0.8085
+    Local_feature_60 sayisal 0.8046
+
+En iyi kurallar (ilk 5):
+                                                          Kural  Kosul  Precision  Recall     F1
+(Local_feature_55 <= -0.4596) AND (Local_feature_90 <= -0.6942)      2     0.9590  0.6493 0.7744
+(Local_feature_55 <= -0.4596) AND (Local_feature_90 <= -0.6942)      2     0.9312  0.6609 0.7731
+(Local_feature_55 <= -0.4596) AND (Local_feature_90 <= -0.6942)      2     0.9526  0.6505 0.7731
+  (Local_feature_55 <= -0.4596) AND (num_output_addresses <= 1)      2     0.9874  0.6326 0.7711
+                (Local_feature_52 <= -0.4035) AND (size <= 192)      2     0.9959  0.6291 0.7711
+
+=== [26] ec=15 | RUN_LEAK_SELFTEST = True
+    oznitelik  ayni_mi                                beklenen
+ent_nsend_max    False                                  farkli
+   ent_pr_max    False                                  farkli
+ent_frate_max    False                                  farkli
+    cp_pr_max    False                                  farkli
+ cp_frate_max    False                                  farkli
+   tx_pr_step     True ayni (adim ici yapi, fold'dan bagimsiz)
+SONUC: cuzdan oznitelikleri yapi bolumune bagli
+
+=== [30] ec=17 | E2_MODELS       = ['LR', 'RF', 'XGBoost', 'LightGBM']   # MLP icin lis
+P1 Random 5-fold CV        : 5 fold | egitim [37251, 37251, 37251, 37251, 37252] | degerlendirme [9313, 9313, 9313, 9313, 9312]
+P3 Temporal 1-34 / 35-49   : 1 fold | egitim [29894] | degerlendirme [16670]
+P4 Rolling-origin          : 5 fold | egitim [23606, 26381, 29894, 35380, 42838] | degerlendirme [2775, 3513, 5486, 7458, 3726]
+E2 calistirici hazir.
+
+=== [32] ec=18 | RUN_E2 = {'P1': True, 'P3': True, 'P4': True}
+=== P1: Random 5-fold CV
+    yapi=194,456 islem | gorulen cuzdan=783,391 | kappa(giris)=0.813 kappa(cikis)=0.833 | 1.7s
+  [Random 5-fold CV] fold 1/5 tamam (156s)
+    yapi=194,456 islem | gorulen cuzdan=778,378 | kappa(giris)=0.808 kappa(cikis)=0.831 | 1.7s
+  [Random 5-fold CV] fold 2/5 tamam (153s)
+    yapi=194,456 islem | gorulen cuzdan=782,376 | kappa(giris)=0.804 kappa(cikis)=0.825 | 1.7s
+  [Random 5-fold CV] fold 3/5 tamam (153s)
+    yapi=194,456 islem | gorulen cuzdan=781,413 | kappa(giris)=0.816 kappa(cikis)=0.825 | 1.6s
+  [Random 5-fold CV] fold 4/5 tamam (152s)
+    yapi=194,457 islem | gorulen cuzdan=769,331 | kappa(giris)=0.806 kappa(cikis)=0.826 | 1.7s
+  [Random 5-fold CV] fold 5/5 tamam (153s)
+=== P3: Temporal 1-34 / 35-49
+    yapi=136,265 islem | gorulen cuzdan=530,840 | kappa(giris)=0.302 kappa(cikis)=0.272 | 1.4s
+  [Temporal 1-34 / 35-49] fold 1/1 tamam (126s)
+=== P4: Rolling-origin
+    yapi=108,950 islem | gorulen cuzdan=423,778 | kappa(giris)=0.415 kappa(cikis)=0.404 | 1.1s
+  [Rolling-origin] fold 1/5 tamam (96s)
+    yapi=120,804 islem | gorulen cuzdan=474,120 | kappa(giris)=0.352 kappa(cikis)=0.268 | 1.2s
+  [Rolling-origin] fold 2/5 tamam (107s)
+    yapi=136,265 islem | gorulen cuzdan=530,840 | kappa(giris)=0.396 kappa(cikis)=0.372 | 1.3s
+  [Rolling-origin] fold 3/5 tamam (124s)
+    yapi=157,122 islem | gorulen cuzdan=620,835 | kappa(giris)=0.248 kappa(cikis)=0.200 | 1.4s
+  [Rolling-origin] fold 4/5 tamam (144s)
+    yapi=184,123 islem | gorulen cuzdan=738,194 | kappa(giris)=0.480 kappa(cikis)=0.370 | 1.6s
+  [Rolling-origin] fold 5/5 tamam (178s)
+============================================================================================================================================
+E2 — f1
+============================================================================================================================================
+                                kappa_ent       A       B       C       D   A+AGG  C κ-mask  D κ-mask  Router C|A  Router D|A     D−A     C−B    Cκ−C  RouterC−A  RouterC−C
+Random 5-fold CV      LR           0.8094  0.7959  0.5359  0.8763  0.9052  0.7805    0.8745    0.8693      0.8690      0.8799  0.1093  0.3405 -0.0019     0.0732    -0.0073
+                      LightGBM     0.8094  0.9342  0.9315  0.9646  0.9650  0.9474    0.9624    0.9648      0.9573      0.9575  0.0308  0.0330 -0.0021     0.0230    -0.0073
+                      RF           0.8094  0.9141  0.9148  0.9517  0.9564  0.9393    0.9543    0.9552      0.9424      0.9451  0.0423  0.0369  0.0025     0.0283    -0.0093
+                      XGBoost      0.8094  0.9367  0.9368  0.9653  0.9650  0.9513    0.9701    0.9674      0.9594      0.9594  0.0283  0.0285  0.0048     0.0227    -0.0059
+                      ORTALAMA     0.8094  0.8952  0.8298  0.9395  0.9479  0.9046    0.9403    0.9392      0.9320      0.9355  0.0527  0.1097  0.0008     0.0368    -0.0075
+Temporal 1-34 / 35-49 LR           0.3018  0.4600  0.0051  0.0110  0.2261  0.4261    0.4187    0.4467      0.5146      0.5144 -0.2339  0.0058  0.4077     0.0546     0.5036
+                      LightGBM     0.3018  0.7583  0.7725  0.6768  0.6822  0.7971    0.7300    0.7456      0.7578      0.7585 -0.0760 -0.0957  0.0532    -0.0005     0.0810
+                      RF           0.3018  0.7304  0.7368  0.7219  0.7800  0.7610    0.7396    0.7534      0.7316      0.7310  0.0496 -0.0149  0.0177     0.0012     0.0096
+                      XGBoost      0.3018  0.7468  0.7973  0.7172  0.6797  0.8065    0.7786    0.7657      0.7474      0.7467 -0.0672 -0.0802  0.0614     0.0006     0.0303
+                      ORTALAMA     0.3018  0.6739  0.5780  0.5317  0.5920  0.6977    0.6667    0.6779      0.6878      0.6877 -0.0819 -0.0462  0.1350     0.0140     0.1561
+Rolling-origin        LR           0.3781  0.5213  0.0811  0.1847  0.3561  0.5175    0.5304    0.5332      0.6147      0.6214 -0.1652  0.1036  0.3457     0.0934     0.4301
+                      LightGBM     0.3781  0.7290  0.7792  0.6953  0.7022  0.7390    0.7146    0.7211      0.7404      0.7358 -0.0268 -0.0839  0.0194     0.0114     0.0451
+                      RF           0.3781  0.7065  0.7182  0.7298  0.7252  0.7248    0.7311    0.7326      0.7218      0.7082  0.0187  0.0116  0.0014     0.0153    -0.0079
+                      XGBoost      0.3781  0.7226  0.7299  0.7140  0.7054  0.7292    0.7193    0.7163      0.7265      0.7267 -0.0172 -0.0160  0.0053     0.0039     0.0125
+                      ORTALAMA     0.3781  0.6699  0.5771  0.5809  0.6222  0.6776    0.6739    0.6758      0.7008      0.6980 -0.0476  0.0038  0.0930     0.0310     0.1199
+
+============================================================================================================================================
+E2 — pr_auc
+============================================================================================================================================
+                                kappa_ent       A       B       C       D   A+AGG  C κ-mask  D κ-mask  Router C|A  Router D|A     D−A     C−B    Cκ−C  RouterC−A  RouterC−C
+Random 5-fold CV      LR           0.8094  0.7343  0.3803  0.9277  0.9537  0.7983    0.9505    0.9500      0.9034      0.9261  0.2195  0.5473  0.0228     0.1692    -0.0242
+                      LightGBM     0.8094  0.9783  0.9767  0.9912  0.9906  0.9835    0.9915    0.9911      0.9885      0.9882  0.0123  0.0145  0.0003     0.0102    -0.0027
+                      RF           0.8094  0.9658  0.9606  0.9817  0.9840  0.9732    0.9834    0.9839      0.9808      0.9814  0.0181  0.0211  0.0017     0.0150    -0.0009
+                      XGBoost      0.8094  0.9807  0.9784  0.9912  0.9913  0.9859    0.9922    0.9918      0.9899      0.9897  0.0106  0.0128  0.0010     0.0091    -0.0013
+                      ORTALAMA     0.8094  0.9148  0.8240  0.9729  0.9799  0.9352    0.9794    0.9792      0.9656      0.9714  0.0651  0.1489  0.0064     0.0509    -0.0073
+Temporal 1-34 / 35-49 LR           0.3018  0.2858  0.2237  0.3288  0.3589  0.3694    0.3411    0.3483      0.3778      0.3781  0.0731  0.1051  0.0124     0.0919     0.0490
+                      LightGBM     0.3018  0.7886  0.7838  0.7621  0.7771  0.7979    0.7798    0.7816      0.7908      0.7910 -0.0115 -0.0217  0.0177     0.0022     0.0287
+                      RF           0.3018  0.7821  0.7762  0.7772  0.7744  0.7950    0.7796    0.7791      0.7826      0.7835 -0.0077  0.0010  0.0025     0.0005     0.0055
+                      XGBoost      0.3018  0.7786  0.7905  0.7784  0.7718  0.7960    0.7836    0.7879      0.7811      0.7809 -0.0068 -0.0121  0.0052     0.0025     0.0027
+                      ORTALAMA     0.3018  0.6588  0.6435  0.6616  0.6706  0.6896    0.6710    0.6742      0.6831      0.6834  0.0118  0.0181  0.0094     0.0243     0.0215
+Rolling-origin        LR           0.3781  0.4334  0.3047  0.4947  0.5369  0.5125    0.5399    0.5414      0.5858      0.5864  0.1035  0.1900  0.0452     0.1524     0.0911
+                      LightGBM     0.3781  0.7821  0.8066  0.7559  0.7608  0.8195    0.7777    0.7791      0.7899      0.7906 -0.0212 -0.0506  0.0218     0.0078     0.0340
+                      RF           0.3781  0.7618  0.7552  0.7574  0.7577  0.7685    0.7630    0.7633      0.7664      0.7653 -0.0041  0.0022  0.0056     0.0046     0.0090
+                      XGBoost      0.3781  0.7807  0.7965  0.7597  0.7601  0.8511    0.7710    0.7713      0.7869      0.7864 -0.0206 -0.0368  0.0113     0.0062     0.0271
+                      ORTALAMA     0.3781  0.6895  0.6658  0.6919  0.7039  0.7379    0.7129    0.7138      0.7322      0.7322  0.0144  0.0262  0.0210     0.0428     0.0403
+
+
+=== [34] ec=19 | if 'P4' in e2_res:
+==============================================================================================================
+Rolling-origin — pr_auc (modellerin ortalamasi)
+==============================================================================================================
+            kappa_ent  n_pos       A       C       D  C κ-mask  Router C|A   A+AGG     D−A  RouterC−A    Cκ−C
+fold_label                                                                                                   
+origin 24      0.4148    652  0.9079  0.9493  0.9571    0.9640      0.9696  0.9263  0.0492     0.0617  0.0147
+origin 29      0.3518    591  0.8879  0.9184  0.9320    0.9374      0.9526  0.8888  0.0441     0.0646  0.0190
+origin 34      0.3963    447  0.8154  0.8408  0.8559    0.8605      0.8746  0.8432  0.0404     0.0592  0.0197
+origin 39      0.2482    515  0.7193  0.6666  0.6799    0.6852      0.7284  0.7622 -0.0394     0.0091  0.0186
+origin 44      0.4796    121  0.1168  0.0847  0.0945    0.1175      0.1360  0.2691 -0.0223     0.0192  0.0328
+
+==============================================================================================================
+Rolling-origin — f1 (modellerin ortalamasi)
+==============================================================================================================
+            kappa_ent  n_pos       A       C       D  C κ-mask  Router C|A   A+AGG     D−A  RouterC−A    Cκ−C
+fold_label                                                                                                   
+origin 24      0.4148    652  0.8836  0.8266  0.8605    0.9180      0.9375  0.8901 -0.0231     0.0539  0.0914
+origin 29      0.3518    591  0.8774  0.7939  0.8396    0.8823      0.9156  0.8191 -0.0378     0.0382  0.0884
+origin 34      0.3963    447  0.8174  0.6668  0.7780    0.8224      0.8412  0.8255 -0.0394     0.0238  0.1556
+origin 39      0.2482    515  0.7266  0.5638  0.5816    0.6722      0.7322  0.7759 -0.1450     0.0056  0.1084
+origin 44      0.4796    121  0.0443  0.0535  0.0513    0.0745      0.0777  0.0775  0.0070     0.0334  0.0210
+
+
+=== [36] ec=20 | import glob
+Alt grup boyutlari (fold ortalamasi):
+                        n   n_pos  prevalans
+tag   subset                                
+E2_P1 gorulen      7538.0   669.8     0.0888
+      gorulmeyen   1774.8   239.2     0.1346
+E2_P3 gorulen      5031.0     5.0     0.0010
+      gorulmeyen  11639.0  1078.0     0.0926
+E2_P4 gorulen      1639.8    72.2     0.0602
+      gorulmeyen   2951.8   393.0     0.1513
+
+==============================================================================================================
+E2 — kappa-ayrilmis pr_auc
+==============================================================================================================
+model                                             LR  LightGBM      RF  XGBoost  ortalama
+tag   subset     feature_set                                                             
+E2_P1 gorulen    A (ham)                      0.7667    0.9849  0.9763   0.9863    0.9286
+                 A+AGG (referans)             0.8297    0.9879  0.9809   0.9904    0.9472
+                 B (A+davranışsal)            0.3744    0.9834  0.9743   0.9849    0.8292
+                 C (B+graf)                   0.9592    0.9953  0.9922   0.9956    0.9856
+                 C (B+graf) [κ-mask]          0.9721    0.9957  0.9921   0.9958    0.9889
+                 D (A+graf)                   0.9747    0.9951  0.9928   0.9954    0.9895
+                 D (A+graf) [κ-mask]          0.9731    0.9955  0.9920   0.9957    0.9891
+                 Router C (B+graf) | A (ham)  0.9592    0.9953  0.9922   0.9956    0.9856
+                 Router D (A+graf) | A (ham)  0.9747    0.9951  0.9928   0.9954    0.9895
+      gorulmeyen A (ham)                      0.6397    0.9550  0.9279   0.9605    0.8708
+                 A+AGG (referans)             0.7159    0.9681  0.9469   0.9693    0.9000
+                 B (A+davranışsal)            0.7428    0.9538  0.9120   0.9552    0.8909
+                 C (B+graf)                   0.8708    0.9737  0.9421   0.9724    0.9397
+                 C (B+graf) [κ-mask]          0.8799    0.9731  0.9502   0.9761    0.9448
+                 D (A+graf)                   0.8847    0.9715  0.9487   0.9728    0.9444
+                 D (A+graf) [κ-mask]          0.8790    0.9719  0.9528   0.9734    0.9443
+                 Router C (B+graf) | A (ham)  0.6397    0.9550  0.9279   0.9605    0.8708
+                 Router D (A+graf) | A (ham)  0.6397    0.9550  0.9279   0.9605    0.8708
+E2_P3 gorulen    A (ham)                      0.0030    0.0186  0.0063   0.0124    0.0101
+                 A+AGG (referans)             0.0050    0.0235  0.0114   0.0251    0.0162
+                 B (A+davranışsal)            0.0025    0.0190  0.0288   0.0181    0.0171
+                 C (B+graf)                   0.2115    0.2630  0.4130   0.2809    0.2921
+                 C (B+graf) [κ-mask]          0.2343    0.2541  0.4062   0.3274    0.3055
+                 D (A+graf)                   0.2292    0.2882  0.2983   0.2629    0.2696
+                 D (A+graf) [κ-mask]          0.2596    0.2602  0.2166   0.3585    0.2737
+                 Router C (B+graf) | A (ham)  0.2115    0.2630  0.4130   0.2809    0.2921
+                 Router D (A+graf) | A (ham)  0.2292    0.2882  0.2983   0.2629    0.2696
+      gorulmeyen A (ham)                      0.3788    0.7931  0.7871   0.7838    0.6857
+                 A+AGG (referans)             0.4563    0.8029  0.8000   0.8017    0.7152
+                 B (A+davranışsal)            0.3840    0.7875  0.7820   0.7952    0.6872
+                 C (B+graf)                   0.3336    0.7644  0.7815   0.7807    0.6651
+                 C (B+graf) [κ-mask]          0.3411    0.7830  0.7838   0.7862    0.6735
+                 D (A+graf)                   0.3607    0.7793  0.7779   0.7744    0.6731
+                 D (A+graf) [κ-mask]          0.3483    0.7849  0.7841   0.7906    0.6770
+                 Router C (B+graf) | A (ham)  0.3788    0.7931  0.7871   0.7838    0.6857
+                 Router D (A+graf) | A (ham)  0.3788    0.7931  0.7871   0.7838    0.6857
+E2_P4 gorulen    A (ham)                      0.2514    0.4921  0.4163   0.4412    0.4003
+                 A+AGG (referans)             0.3239    0.5181  0.4740   0.5578    0.4685
+                 B (A+davranışsal)            0.1869    0.5165  0.4492   0.4716    0.4061
+                 C (B+graf)                   0.6248    0.7722  0.7476   0.7864    0.7328
+                 C (B+graf) [κ-mask]          0.6650    0.8408  0.7647   0.8523    0.7807
+                 D (A+graf)                   0.7019    0.7870  0.7423   0.7770    0.7520
+                 D (A+graf) [κ-mask]          0.6947    0.7920  0.7500   0.8125    0.7623
+                 Router C (B+graf) | A (ham)  0.6248    0.7722  0.7476   0.7864    0.7328
+                 Router D (A+graf) | A (ham)  0.7019    0.7870  0.7423   0.7770    0.7520
+      gorulmeyen A (ham)                      0.5172    0.7804  0.7615   0.7810    0.7100
+                 A+AGG (referans)             0.5734    0.8205  0.7689   0.8606    0.7559
+                 B (A+davranışsal)            0.4679    0.8045  0.7547   0.7949    0.7055
+                 C (B+graf)                   0.4266    0.7467  0.7509   0.7524    0.6691
+                 C (B+graf) [κ-mask]          0.4626    0.7680  0.7577   0.7662    0.6887
+                 D (A+graf)                   0.4576    0.7503  0.7520   0.7526    0.6781
+                 D (A+graf) [κ-mask]          0.4646    0.7693  0.7575   0.7656    0.6893
+                 Router C (B+graf) | A (ham)  0.5172    0.7804  0.7615   0.7810    0.7100
+                 Router D (A+graf) | A (ham)  0.5172    0.7804  0.7615   0.7810    0.7100
+
+==============================================================================================================
+E2 — kappa-ayrilmis f1
+==============================================================================================================
+model                                             LR  LightGBM      RF  XGBoost  ortalama
+tag   subset     feature_set                                                             
+E2_P1 gorulen    A (ham)                      0.8150    0.9477  0.9343   0.9496    0.9116
+                 A+AGG (referans)             0.7985    0.9570  0.9506   0.9611    0.9168
+                 B (A+davranışsal)            0.6074    0.9441  0.9369   0.9497    0.8595
+                 C (B+graf)                   0.9137    0.9787  0.9712   0.9804    0.9610
+                 C (B+graf) [κ-mask]          0.8947    0.9762  0.9727   0.9824    0.9565
+                 D (A+graf)                   0.9264    0.9790  0.9750   0.9801    0.9651
+                 D (A+graf) [κ-mask]          0.8890    0.9782  0.9727   0.9813    0.9553
+                 Router C (B+graf) | A (ham)  0.9137    0.9787  0.9712   0.9804    0.9610
+                 Router D (A+graf) | A (ham)  0.9264    0.9790  0.9750   0.9801    0.9651
+      gorulmeyen A (ham)                      0.7394    0.8955  0.8552   0.8992    0.8473
+                 A+AGG (referans)             0.7291    0.9193  0.9064   0.9223    0.8693
+                 B (A+davranışsal)            0.1031    0.8948  0.8495   0.8987    0.6865
+                 C (B+graf)                   0.7540    0.9235  0.8940   0.9223    0.8735
+                 C (B+graf) [κ-mask]          0.8128    0.9230  0.9000   0.9343    0.8925
+                 D (A+graf)                   0.8419    0.9246  0.9008   0.9213    0.8971
+                 D (A+graf) [κ-mask]          0.8082    0.9256  0.9033   0.9273    0.8911
+                 Router C (B+graf) | A (ham)  0.7394    0.8955  0.8552   0.8992    0.8473
+                 Router D (A+graf) | A (ham)  0.7394    0.8955  0.8552   0.8992    0.8473
+E2_P3 gorulen    A (ham)                      0.0000    0.0000  0.0000   0.0000    0.0000
+                 A+AGG (referans)             0.0065    0.0000  0.0000   0.0000    0.0016
+                 B (A+davranışsal)            0.0000    0.0000  0.0000   0.0000    0.0000
+                 C (B+graf)                   0.3333    0.2222  0.5714   0.3333    0.3651
+                 C (B+graf) [κ-mask]          0.2857    0.0000  0.5714   0.3333    0.2976
+                 D (A+graf)                   0.2857    0.2857  0.3333   0.2500    0.2887
+                 D (A+graf) [κ-mask]          0.2222    0.0000  0.3333   0.3333    0.2222
+                 Router C (B+graf) | A (ham)  0.3333    0.2222  0.5714   0.3333    0.3651
+                 Router D (A+graf) | A (ham)  0.2857    0.2857  0.3333   0.2500    0.2887
+      gorulmeyen A (ham)                      0.5149    0.7601  0.7321   0.7487    0.6889
+                 A+AGG (referans)             0.4707    0.8055  0.7629   0.8141    0.7133
+                 B (A+davranışsal)            0.0074    0.7745  0.7385   0.7994    0.5799
+                 C (B+graf)                   0.0092    0.6786  0.7224   0.7182    0.5321
+                 C (B+graf) [κ-mask]          0.4191    0.7317  0.7402   0.7800    0.6677
+                 D (A+graf)                   0.2258    0.6834  0.7814   0.6811    0.5929
+                 D (A+graf) [κ-mask]          0.4474    0.7474  0.7546   0.7671    0.6791
+                 Router C (B+graf) | A (ham)  0.5149    0.7601  0.7321   0.7487    0.6889
+                 Router D (A+graf) | A (ham)  0.5149    0.7601  0.7321   0.7487    0.6889
+E2_P4 gorulen    A (ham)                      0.0094    0.3949  0.3949   0.3966    0.2990
+                 A+AGG (referans)             0.2093    0.4461  0.3943   0.2001    0.3124
+                 B (A+davranışsal)            0.1751    0.4456  0.3949   0.3949    0.3526
+                 C (B+graf)                   0.5300    0.7443  0.7232   0.5815    0.6447
+                 C (B+graf) [κ-mask]          0.5992    0.7183  0.6981   0.6877    0.6759
+                 D (A+graf)                   0.6717    0.6882  0.5988   0.6481    0.6517
+                 D (A+graf) [κ-mask]          0.6112    0.5645  0.7255   0.6205    0.6304
+                 Router C (B+graf) | A (ham)  0.5300    0.7443  0.7232   0.5815    0.6447
+                 Router D (A+graf) | A (ham)  0.6717    0.6882  0.5988   0.6481    0.6517
+      gorulmeyen A (ham)                      0.5977    0.7232  0.7008   0.7176    0.6848
+                 A+AGG (referans)             0.5534    0.7337  0.7189   0.7623    0.6921
+                 B (A+davranışsal)            0.0071    0.7718  0.7125   0.7234    0.5537
+                 C (B+graf)                   0.0218    0.6745  0.7089   0.7016    0.5267
+                 C (B+graf) [κ-mask]          0.5024    0.6979  0.7098   0.7063    0.6541
+                 D (A+graf)                   0.2721    0.6840  0.7182   0.6911    0.5914
+                 D (A+graf) [κ-mask]          0.5057    0.7027  0.7118   0.7032    0.6558
+                 Router C (B+graf) | A (ham)  0.5977    0.7232  0.7008   0.7176    0.6848
+                 Router D (A+graf) | A (ham)  0.5977    0.7232  0.7008   0.7176    0.6848
+
+
+=== [38] ec=21 | # ============================================================
+                                               ort_fark  anlamli_naive  anlamli_holm  model
+comparison                             metric                                              
+B (A+davranışsal) vs A (ham)           f1       -0.0655              1             1      4
+                                       pr_auc   -0.0908              3             2      4
+C (B+graf) [κ-mask] vs C (B+graf)      f1        0.0008              0             0      4
+                                       pr_auc    0.0064              2             1      4
+C (B+graf) vs B (A+davranışsal)        f1        0.1097              4             4      4
+                                       pr_auc    0.1489              4             4      4
+D (A+graf) vs A (ham)                  f1        0.0527              4             4      4
+                                       pr_auc    0.0651              4             4      4
+Router C (B+graf) | A (ham) vs A (ham) f1        0.0368              4             4      4
+                                       pr_auc    0.0509              4             4      4
+
+=== [40] ec=22 | tables_e = {'E_audit': audit_table if 'audit_table' in globals() else 
+paper_tables_elliptic.xlsx kaydedildi: ['E_audit', 'E_f1', 'E_pr_auc', 'E_kappa_stratified', 'E_significance_P1']
+
+=== [42] ec=25 | !pip -q install torch_geometric
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m64.4/64.4 kB[0m [31m2.4 MB/s[0m eta [36m0:00:00[0m
+[2K   [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m1.3/1.3 MB[0m [31m34.2 MB/s[0m eta [36m0:00:00[0m
+[?25hGNN cihazi: cuda | dugum 203,769 | yonsuz kenar 468,710
+GNN yardimcilari hazir.
+
+=== [43] ec=26 | def run_gnn(key):
+  [Temporal 1-34 / 35-49] GNN fold 1/1 tamam (128s)
+  [Rolling-origin] GNN fold 1/5 tamam (95s)
+  [Rolling-origin] GNN fold 2/5 tamam (108s)
+  [Rolling-origin] GNN fold 3/5 tamam (117s)
+  [Rolling-origin] GNN fold 4/5 tamam (132s)
+  [Rolling-origin] GNN fold 5/5 tamam (167s)
+  [Random 5-fold CV] GNN fold 1/5 tamam (170s)
+  [Random 5-fold CV] GNN fold 2/5 tamam (164s)
+  [Random 5-fold CV] GNN fold 3/5 tamam (158s)
+  [Random 5-fold CV] GNN fold 4/5 tamam (162s)
+  [Random 5-fold CV] GNN fold 5/5 tamam (156s)
+====================================================================================================
+E3 — GNN (tohum ve fold ortalamasi; parantez: tohumlar arasi std)
+====================================================================================================
+                                             f1  pr_auc  auc_roc  train_s  infer_s  best_epoch  f1_seed_std  pr_auc_seed_std
+protocol              feature_set                                                                                           
+Random 5-fold CV      GCN (A)            0.7874  0.8690   0.9723  13.6782   0.0152    286.8000       0.0014           0.0007
+                      GCN (A+AGG)        0.8618  0.9247   0.9829  13.5371   0.0158    247.9333       0.0016           0.0018
+                      GraphSAGE (A)      0.8843  0.9372   0.9837  11.9971   0.0188    251.6000       0.0025           0.0008
+                      GraphSAGE (A+AGG)  0.8970  0.9442   0.9860  11.8313   0.0286    179.9333       0.0018           0.0032
+Rolling-origin        GCN (A)            0.5778  0.6405   0.9015  10.4241   0.0151    280.4000       0.0054           0.0033
+                      GCN (A+AGG)        0.6038  0.6966   0.9309  10.2253   0.0156    246.7333       0.0045           0.0064
+                      GraphSAGE (A)      0.6581  0.6986   0.9108   8.6785   0.0184    230.7333       0.0152           0.0085
+                      GraphSAGE (A+AGG)  0.6625  0.7194   0.9279   9.2346   0.0276    190.8000       0.0045           0.0063
+Temporal 1-34 / 35-49 GCN (A)            0.4509  0.4736   0.8752  13.3089   0.0194    289.6667       0.0061           0.0052
+                      GCN (A+AGG)        0.5284  0.6437   0.8995   8.4939   0.0154    201.3333       0.0204           0.0283
+                      GraphSAGE (A)      0.6853  0.6914   0.9054   6.7981   0.0191    168.0000       0.0185           0.0210
+                      GraphSAGE (A+AGG)  0.6818  0.7186   0.9168   9.7894   0.0289    207.6667       0.0071           0.0225
+
+=== [45] ec=27 | COMPARE_TABULAR_MODELS = ['LightGBM', 'XGBoost']
+========================================================================================================================
+Tablo modeller vs GNN — PR-AUC ve F1 (fold ortalamasi; GNN tohum ortalamasi)
+========================================================================================================================
+                                                      pr_auc                                                    f1                                
+                                       Temporal 1-34 / 35-49 Rolling-origin Random 5-fold CV Temporal 1-34 / 35-49 Rolling-origin Random 5-fold CV
+method                                                                                                                                            
+LightGBM · A+AGG (referans)                           0.7979         0.8195           0.9835                0.7971         0.7390           0.9474
+XGBoost · A+AGG (referans)                            0.7960         0.8511           0.9859                0.8065         0.7292           0.9513
+LightGBM · Router C (B+graf) | A (ham)                0.7908         0.7899           0.9885                0.7578         0.7404           0.9573
+LightGBM · A (ham)                                    0.7886         0.7821           0.9783                0.7583         0.7290           0.9342
+XGBoost · C (B+graf) [κ-mask]                         0.7836         0.7710           0.9922                0.7786         0.7193           0.9701
+XGBoost · Router C (B+graf) | A (ham)                 0.7811         0.7869           0.9899                0.7474         0.7265           0.9594
+LightGBM · C (B+graf) [κ-mask]                        0.7798         0.7777           0.9915                0.7300         0.7146           0.9624
+XGBoost · A (ham)                                     0.7786         0.7807           0.9807                0.7468         0.7226           0.9367
+XGBoost · C (B+graf)                                  0.7784         0.7597           0.9912                0.7172         0.7140           0.9653
+LightGBM · D (A+graf)                                 0.7771         0.7608           0.9906                0.6822         0.7022           0.9650
+XGBoost · D (A+graf)                                  0.7718         0.7601           0.9913                0.6797         0.7054           0.9650
+LightGBM · C (B+graf)                                 0.7621         0.7559           0.9912                0.6768         0.6953           0.9646
+GraphSAGE (A+AGG)                                     0.7186         0.7194           0.9442                0.6818         0.6625           0.8970
+GraphSAGE (A)                                         0.6914         0.6986           0.9372                0.6853         0.6581           0.8843
+GCN (A+AGG)                                           0.6437         0.6966           0.9247                0.5284         0.6038           0.8618
+GCN (A)                                               0.4736         0.6405           0.8690                0.4509         0.5778           0.7874
+
+GNN — kappa-ayrilmis PR-AUC (tohum ve fold ortalamasi)
+feature_set           GCN (A)  GCN (A+AGG)  GraphSAGE (A)  GraphSAGE (A+AGG)
+tag       subset                                                            
+E3_GNN_P1 gorulen      0.8915       0.9400         0.9531             0.9561
+          gorulmeyen   0.8068       0.8825         0.8862             0.9060
+E3_GNN_P3 gorulen      0.0091       0.0063         0.0095             0.0039
+          gorulmeyen   0.4831       0.6691         0.6979             0.7553
+E3_GNN_P4 gorulen      0.3867       0.4086         0.4081             0.4233
+          gorulmeyen   0.6428       0.6979         0.7030             0.7272
+
+=== [47] ec=28 | RUN_LATENCY = True
+Cihaz: cuda | test islemi: 16,670 | oznitelik hesaplama (cuzdan, tum fold): 1.4s
+                                 yontem  oznitelik_s  tahmin_s  ms_per_1k
+                     LightGBM · A (ham)       0.0000    0.0545     3.2691
+                  LightGBM · C (B+graf)       1.4066    0.0338    86.4071
+                     GCN · A (tam graf)       0.0000    0.0098     0.5866
+      GCN · A (test adimlari alt grafi)       0.0000    0.0055     0.3284
+               GraphSAGE · A (tam graf)       0.0000    0.0012     0.0719
+GraphSAGE · A (test adimlari alt grafi)       0.0000    0.0019     0.1161
+Not: cuzdan oznitelikleri canli sistemde artimli guncellenebilir; buradaki sure tum fold icin toplu hesaplamadir.
+
+=== [48] ec=29 | for _n, _v in [('E3_gnn', 'E3'), ('E3_compare', 'compare_e3'), ('E3_gn
+paper_tables_elliptic.xlsx guncellendi: ['E_audit', 'E_f1', 'E_pr_auc', 'E_kappa_stratified', 'E_significance_P1', 'E3_gnn', 'E3_compare', 'E3_gnn_kappa', 'E3_latency']
+

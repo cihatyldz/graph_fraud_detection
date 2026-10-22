@@ -1,0 +1,940 @@
+=== [3] ec=1 | # pip install pandas numpy networkx python-louvain scikit-learn xgboos
+Mounted at /content/drive
+FAST_MODE=True  SUBSAMPLE_N=None  N_FOLDS=5
+CHECKPOINT_DIR=/content/drive/MyDrive/fraud_checkpoints  RESUME=True
+
+=== [5] ec=2 | df = pd.read_csv('bs140513_032310.csv')
+Ham okuma: 594,643 satır
+Veri parmak izi kaydedildi: {'n_rows': 594643, 'n_fraud': 7200, 'rows_sha1': '728aa437723424422f63448c9d9b0579e47cb96d'}
+İşlem sayısı      : 594,643
+Müşteri / Merchant: 4,112 / 50
+Zaman adımı       : 0 - 179
+Fraud             : 7,200 (%1.211)
+Dengesizlik oranı : 1:81
+
+Zamansal bölme kontrolü:
+  Eğitim (step<=144): n=465,094  fraud=5,800 (%1.247)
+  Test  (step >144): n=129,549  fraud=1,400 (%1.081)
+
+=== [6] ec=3 | fig, ax = plt.subplots(1, 3, figsize=(16,4))
+<Figure size 1600x400 with 3 Axes>
+=== [8] ec=4 | 
+A1 OOF target encoding hazır (TE_N_SPLITS=5, TE_SMOOTHING=20.0).
+
+=== [9] ec=5 | # ============================================================
+A2 imputasyon yardimcisi hazir (IMPUTE_POLICY=row_median).
+
+=== [10] ec=6 | # ============================================================
+A5 hazir: TE kolonlari = ['merchant', 'category']
+
+=== [11] ec=7 | CAT_COLS = ['customer','merchant','category','age','gender']
+compute_fold_features hazır (sızıntısız, A1: OOF community_fraud_rate, A2: imputasyon politikası, A5: TE kontrol).
+
+=== [13] ec=8 | _COMM_COL = 'customer_community'
+=== [15] ec=9 | FEATURES_A = ['step','customer_enc','merchant_enc','category_enc','age
+A4: cikarilan=['customer_enc', 'customer_community', 'merchant_community'] | zaman indeksi {'step': 'step_dow'} (mod 7)
+  A (ham)             :  7 öznitelik
+  B (A+davranışsal)   : 19 öznitelik
+  C (B+graf)          : 28 öznitelik
+  D (A+graf)          : 16 öznitelik
+  A+TE (kontrol)      :  9 öznitelik (kontrol, ablation dışı)
+  D+TE (kontrol)      : 18 öznitelik (kontrol, ablation dışı)
+
+Öznitelik-kategori haritası: 28 satır (makalede Table 1)
+
+                  Feature                       Category Present in sets
+0                step_dow                Raw transaction      A, B, C, D
+1            merchant_enc                Raw transaction      A, B, C, D
+2            category_enc                Raw transaction      A, B, C, D
+3                 age_enc                Raw transaction      A, B, C, D
+4              gender_enc                Raw transaction      A, B, C, D
+5                  amount                Raw transaction      A, B, C, D
+6              amount_log                Raw transaction      A, B, C, D
+7            cust_n_trans  Behavioral aggregate (Cat. 3)            B, C
+8         cust_avg_amount  Behavioral aggregate (Cat. 3)            B, C
+9         cust_std_amount  Behavioral aggregate (Cat. 3)            B, C
+10        cust_max_amount  Behavioral aggregate (Cat. 3)            B, C
+11  cust_unique_merchants  Behavioral aggregate (Cat. 3)            B, C
+=== [17] ec=10 | def get_models(fast=FAST_MODE):
+Modeller: ['LR', 'NB', 'DT', 'KNN', 'SVM', 'RF', 'GBDT', 'XGBoost', 'LightGBM', 'MLP']
+
+=== [18] ec=11 | def full_metrics(y_true, y_pred, y_score, k_frac=0.01):
+Metrik ve eğitim yardımcıları hazır. THRESHOLD_MODE=tuned
+
+=== [20] ec=12 | # ============================================================
+=== [22] ec=13 | # ============================================================
+=== [24] ec=14 | # ============================================================
+=== [26] ec=15 | # ============================================================
+A6 artefakt denetimi yardimcilari hazir.
+
+=== [27] ec=16 | # ============================================================
+========================================================================================
+ARTEFAKT DENETIMI — makale Table 2
+========================================================================================
+                             Kriter Kabul  Deger    Sonuc
+  C1  En iyi tek-oznitelik AUC (a*) < 0.9 0.9938 !! KALDI
+    C2  En iyi basit kural F1 (F1*) < 0.5 0.7397 !! KALDI
+C3  Tek islemli varlik orani (rho1) < 0.5 0.0002    GECTI
+     C4  Kenar/dugum orani (lambda) > 1.5 9.9471    GECTI
+  C5  En buyuk bilesen payi (gamma) > 0.8 1.0000    GECTI
+
+En yuksek tek-oznitelik AUC (ilk 10):
+ feature                 kind    auc
+merchant kategorik (OOF oran) 0.9938
+category kategorik (OOF oran) 0.9821
+  amount              sayisal 0.9505
+  gender kategorik (OOF oran) 0.5554
+    step              sayisal 0.5300
+     age kategorik (OOF oran) 0.5146
+
+En iyi kurallar (ilk 10):
+                                           Kural  Kosul  Precision  Recall     F1
+      (amount > 242) OR (merchant == M980657600)      2     0.7675  0.7138 0.7397
+      (amount > 242) OR (category == es_leisure)      2     0.7875  0.6471 0.7104
+        (amount > 242) OR (merchant == M3697346)      2     0.7868  0.6400 0.7058
+      (amount > 242) OR (merchant == M732195782)      2     0.7861  0.6348 0.7024
+       (amount > 242) OR (category == es_travel)      2     0.7835  0.6352 0.7016
+                                    amount > 242      1     0.7875  0.6314 0.7009
+                 (amount > 242) OR (gender == U)      2     0.7229  0.6314 0.6740
+(amount > 242) OR (category == es_sportsandtoys)      2     0.6112  0.7414 0.6700
+(amount > 242) OR (category == es_hotelservices)      2     0.6671  0.6547 0.6608
+      (amount > 242) OR (merchant == M480139044)      2     0.6132  0.7081 0.6572
+
+!! En az bir kriter KALDI. Makalede "pass" yazilamaz; kriter, deger ve sonuc acikca raporlanmali.
+
+=== [29] ec=17 | # ============================================================
+SIZINTI OZ-TESTI
+           oznitelik  ayni_mi  korelasyon
+community_fraud_rate    False       0.402
+       cust_pagerank    False       0.246
+         cust_degree    False       0.288
+        cust_n_trans    False       0.288
+     cust_avg_amount    False       0.397
+SONUC: oznitelikler egitim kumesine bagli
+
+=== [31] ec=18 | def _ckpt(tag):
+  [Random 5-fold CV] Fold 1/5
+    graf=0.3s  centrality=18.2s  uygula=3.9s | düğüm=4162  kenar=42392  topluluk=3  görülmeyen müşteri=%0.00  kappa=1.000  impute=row_median
+      A (ham) tamam (269s)
+      B (A+davranışsal) tamam (577s)
+      C (B+graf) tamam (911s)
+      D (A+graf) tamam (1152s)
+    [kaydedildi] /content/drive/MyDrive/fraud_checkpoints/P1_random_results.csv  (fold 1, 1152s)
+  [Random 5-fold CV] Fold 2/5
+    graf=0.2s  centrality=15.2s  uygula=3.0s | düğüm=4162  kenar=42515  topluluk=3  görülmeyen müşteri=%0.00  kappa=1.000  impute=row_median
+      A (ham) tamam (208s)
+      B (A+davranışsal) tamam (512s)
+      C (B+graf) tamam (830s)
+      D (A+graf) tamam (1089s)
+    [kaydedildi] /content/drive/MyDrive/fraud_checkpoints/P1_random_results.csv  (fold 2, 1089s)
+  [Random 5-fold CV] Fold 3/5
+    graf=0.2s  centrality=15.2s  uygula=2.9s | düğüm=4162  kenar=42343  topluluk=3  görülmeyen müşteri=%0.00  kappa=1.000  impute=row_median
+      A (ham) tamam (237s)
+      B (A+davranışsal) tamam (544s)
+      C (B+graf) tamam (909s)
+      D (A+graf) tamam (1276s)
+    [kaydedildi] /content/drive/MyDrive/fraud_checkpoints/P1_random_results.csv  (fold 3, 1276s)
+  [Random 5-fold CV] Fold 4/5
+    graf=0.4s  centrality=16.4s  uygula=2.9s | düğüm=4162  kenar=42472  topluluk=3  görülmeyen müşteri=%0.00  kappa=1.000  impute=row_median
+      A (ham) tamam (224s)
+      B (A+davranışsal) tamam (543s)
+      C (B+graf) tamam (876s)
+      D (A+graf) tamam (1241s)
+    [kaydedildi] /content/drive/MyDrive/fraud_checkpoints/P1_random_results.csv  (fold 4, 1241s)
+  [Random 5-fold CV] Fold 5/5
+    graf=0.3s  centrality=15.5s  uygula=3.5s | düğüm=4162  kenar=42491  topluluk=3  görülmeyen müşteri=%0.00  kappa=1.000  impute=row_median
+      A (ham) tamam (281s)
+      B (A+davranışsal) tamam (574s)
+      C (B+graf) tamam (881s)
+      D (A+graf) tamam (1140s)
+    [kaydedildi] /content/drive/MyDrive/fraud_checkpoints/P1_random_results.csv  (fold 5, 1140s)
+
+Protokol 1 tamamlandı: 5900s, 200 deney
+
+=== [32] ec=19 | # Ablation tablosu — F1
+====================================================================================================
+PROTOKOL 1 — RASTGELE 5-FOLD CV (SIZINTISIZ), F1-Score
+====================================================================================================
+feature_set  A (ham)  B (A+davranışsal)  C (B+graf)  D (A+graf)     C-A     C-B     D-A
+model                                                                                  
+DT            0.7784             0.8000      0.8033      0.8210  0.0249  0.0033  0.0426
+GBDT          0.8132             0.8451      0.8437      0.8448  0.0305 -0.0014  0.0316
+KNN           0.5862             0.7294      0.7151      0.6637  0.1289 -0.0143  0.0775
+LR            0.7107             0.7803      0.7871      0.7790  0.0764  0.0068  0.0683
+LightGBM      0.8150             0.8356      0.8394      0.8422  0.0244  0.0038  0.0272
+MLP           0.8033             0.8530      0.8519      0.8386  0.0486 -0.0011  0.0353
+NB            0.6923             0.6853      0.5429      0.6332 -0.1494 -0.1424 -0.0591
+RF            0.8060             0.8607      0.8637      0.8573  0.0577  0.0030  0.0513
+SVM           0.7175             0.7811      0.7928      0.7849  0.0753  0.0117  0.0674
+XGBoost       0.8119             0.8379      0.8383      0.8347  0.0264  0.0004  0.0228
+
+D-A = graf özniteliklerinin davranışsal aggregate OLMADAN katkısı
+
+=== [33] ec=20 | # PR-AUC tablosu (dengesiz veri için F1'den bilgilendirici)
+====================================================================================================
+PROTOKOL 1 — PR-AUC
+====================================================================================================
+feature_set  A (ham)  B (A+davranışsal)  C (B+graf)  D (A+graf)     C-A     D-A
+model                                                                          
+DT            0.7286             0.6996      0.6977      0.7493 -0.0309  0.0207
+GBDT          0.8964             0.9210      0.9204      0.9209  0.0240  0.0245
+KNN           0.6759             0.7796      0.7744      0.7394  0.0985  0.0635
+LR            0.7402             0.8435      0.8519      0.8348  0.1117  0.0946
+LightGBM      0.8975             0.9209      0.9209      0.9218  0.0234  0.0243
+MLP           0.8848             0.9321      0.9317      0.9146  0.0469  0.0298
+NB            0.6828             0.5469      0.3751      0.4856 -0.3077 -0.1972
+RF            0.8807             0.9313      0.9351      0.9325  0.0544  0.0518
+SVM           0.7406             0.8460      0.8681      0.8487  0.1275  0.1081
+XGBoost       0.8828             0.8913      0.8841      0.8909  0.0013  0.0081
+
+=== [35] ec=21 | import glob, hashlib
+P2 bolme parmak izi: 7d2c4d05d580 | fold boyutlari: [118927, 118931, 118927, 118927, 118931]
+  Fold 1: eğitim n=475,716 fraud=%1.158 | test n=118,927 fraud=%1.424
+  Fold 2: eğitim n=475,712 fraud=%1.156 | test n=118,931 fraud=%1.430
+  Fold 3: eğitim n=475,716 fraud=%1.252 | test n=118,927 fraud=%1.044
+  Fold 4: eğitim n=475,716 fraud=%1.197 | test n=118,927 fraud=%1.265
+  Fold 5: eğitim n=475,712 fraud=%1.291 | test n=118,931 fraud=%0.890
+  [GroupKFold (customer)] Fold 1/5
+    graf=0.2s  centrality=12.5s  uygula=6.0s | düğüm=3340  kenar=37675  topluluk=3  görülmeyen müşteri=%100.00  kappa=0.000  impute=row_median
+      A (ham) tamam (231s)
+      B (A+davranışsal) tamam (576s)
+      C (B+graf) tamam (969s)
+      D (A+graf) tamam (1294s)
+    [kaydedildi] /content/drive/MyDrive/fraud_checkpoints/P2_group_results.csv  (fold 1, 1294s)
+  [GroupKFold (customer)] Fold 2/5
+    graf=0.4s  centrality=12.5s  uygula=7.2s | düğüm=3339  kenar=37751  topluluk=3  görülmeyen müşteri=%100.00  kappa=0.000  impute=row_median
+      A (ham) tamam (244s)
+      B (A+davranışsal) tamam (529s)
+      C (B+graf) tamam (957s)
+      D (A+graf) tamam (1297s)
+    [kaydedildi] /content/drive/MyDrive/fraud_checkpoints/P2_group_results.csv  (fold 2, 1297s)
+  [GroupKFold (customer)] Fold 3/5
+    graf=0.3s  centrality=12.8s  uygula=5.8s | düğüm=3340  kenar=37717  topluluk=3  görülmeyen müşteri=%100.00  kappa=0.000  impute=row_median
+      A (ham) tamam (296s)
+      B (A+davranışsal) tamam (663s)
+      C (B+graf) tamam (981s)
+      D (A+graf) tamam (1259s)
+    [kaydedildi] /content/drive/MyDrive/fraud_checkpoints/P2_group_results.csv  (fold 3, 1259s)
+  [GroupKFold (customer)] Fold 4/5
+    graf=0.3s  centrality=11.9s  uygula=5.4s | düğüm=3340  kenar=37696  topluluk=3  görülmeyen müşteri=%100.00  kappa=0.000  impute=row_median
+      A (ham) tamam (238s)
+      B (A+davranışsal) tamam (512s)
+      C (B+graf) tamam (835s)
+      D (A+graf) tamam (1179s)
+    [kaydedildi] /content/drive/MyDrive/fraud_checkpoints/P2_group_results.csv  (fold 4, 1179s)
+  [GroupKFold (customer)] Fold 5/5
+    graf=0.3s  centrality=13.3s  uygula=7.6s | düğüm=3339  kenar=37689  topluluk=3  görülmeyen müşteri=%100.00  kappa=0.000  impute=row_median
+      A (ham) tamam (251s)
+      B (A+davranışsal) tamam (547s)
+      C (B+graf) tamam (909s)
+      D (A+graf) tamam (1236s)
+    [kaydedildi] /content/drive/MyDrive/fraud_checkpoints/P2_group_results.csv  (fold 5, 1236s)
+
+Protokol 2 tamamlandı: 6268s
+====================================================================================================
+PROTOKOL 2 — GROUPKFOLD (müşteri bazlı), F1-Score
+====================================================================================================
+feature_set  A (ham)  B (A+davranışsal)  C (B+graf)  D (A+graf)     C-A     C-B     D-A
+model                                                                                  
+DT            0.7768             0.6611      0.5409      0.7531 -0.2359 -0.1202 -0.0237
+GBDT          0.8111             0.7096      0.7185      0.6995 -0.0926  0.0089 -0.1116
+KNN           0.5777             0.7382      0.7340      0.6689  0.1563 -0.0042  0.0912
+LR            0.7076             0.6218      0.6322      0.6374 -0.0754  0.0104 -0.0702
+LightGBM      0.8168             0.7150      0.7102      0.5715 -0.1066 -0.0048 -0.2453
+MLP           0.8017             0.7608      0.7549      0.7403 -0.0468 -0.0059 -0.0614
+NB            0.6905             0.7082      0.6704      0.7112 -0.0201 -0.0378  0.0207
+RF            0.8034             0.7465      0.7394      0.7584 -0.0640 -0.0071 -0.0450
+SVM           0.7158             0.5945      0.6614      0.6978 -0.0544  0.0669 -0.0180
+XGBoost       0.8092             0.7105      0.7213      0.7219 -0.0879  0.0108 -0.0873
+
+=== [37] ec=22 | tr_mask = (df['step'] <= TEMPORAL_CUT).values
+  [Temporal out-of-time] Fold 1/1
+    graf=0.5s  centrality=14.9s  uygula=3.2s | düğüm=4162  kenar=41400  topluluk=3  görülmeyen müşteri=%0.00  kappa=1.000  impute=row_median
+      A (ham) tamam (234s)
+      B (A+davranışsal) tamam (542s)
+      C (B+graf) tamam (890s)
+      D (A+graf) tamam (1192s)
+    [kaydedildi] /content/drive/MyDrive/fraud_checkpoints/P3_temporal_results.csv  (fold 1, 1192s)
+
+Protokol 3 tamamlandı: 1193s
+====================================================================================================
+PROTOKOL 3 — ZAMANSAL OUT-OF-TIME, F1-Score
+====================================================================================================
+feature_set  A (ham)  B (A+davranışsal)  C (B+graf)  D (A+graf)     C-A     C-B     D-A
+model                                                                                  
+DT            0.7801             0.6444      0.6261      0.5976 -0.1540 -0.0183 -0.1825
+GBDT          0.8336             0.8403      0.8249      0.8197 -0.0087 -0.0154 -0.0139
+KNN           0.6601             0.6779      0.6741      0.5406  0.0140 -0.0038 -0.1195
+LR            0.7001             0.7490      0.7768      0.7420  0.0767  0.0278  0.0419
+LightGBM      0.8296             0.8178      0.8222      0.8175 -0.0074  0.0044 -0.0121
+MLP           0.8145             0.8280      0.8353      0.8091  0.0208  0.0073 -0.0054
+NB            0.6682             0.6526      0.5118      0.5823 -0.1564 -0.1408 -0.0859
+RF            0.7995             0.8354      0.8089      0.8069  0.0094 -0.0265  0.0074
+SVM           0.6858             0.7399      0.7763      0.7657  0.0905  0.0364  0.0799
+XGBoost       0.8213             0.8117      0.8109      0.7905 -0.0104 -0.0008 -0.0308
+
+PR-AUC:
+feature_set  A (ham)  B (A+davranışsal)  C (B+graf)  D (A+graf)
+model                                                          
+DT            0.7522             0.4850      0.4447      0.4311
+GBDT          0.9175             0.9195      0.9204      0.8854
+KNN           0.7314             0.7251      0.7041      0.7143
+LR            0.7329             0.8248      0.8553      0.8244
+LightGBM      0.9228             0.9038      0.9072      0.8818
+MLP           0.8979             0.9178      0.9173      0.8983
+NB            0.6599             0.5061      0.3450      0.4237
+RF            0.8914             0.9077      0.8828      0.8875
+SVM           0.7339             0.8115      0.8651      0.8454
+XGBoost       0.8987             0.8762      0.8666      0.8489
+
+=== [39] ec=23 | # ============================================================
+  sizinti enjeksiyonu: fold 1/3 tamam
+  sizinti enjeksiyonu: fold 2/3 tamam
+  sizinti enjeksiyonu: fold 3/3 tamam
+====================================================================================================
+SIZINTI ENJEKSIYONU — f1 (P1, 3 fold, C (B+graf))
+====================================================================================================
+model              LR  LightGBM      RF  ortalama  LR (sisirme)  LightGBM (sisirme)  RF (sisirme)  ortalama (sisirme)
+variant                                                                                                              
+sizintisiz     0.7879    0.8409  0.8629    0.8306        0.0000              0.0000        0.0000              0.0000
++graph         0.7910    0.8458  0.8673    0.8347        0.0031              0.0048        0.0044              0.0041
++agg           0.7919    0.8548  0.8664    0.8377        0.0041              0.0138        0.0035              0.0071
++cfr           0.7861    0.8427  0.8596    0.8295       -0.0018              0.0017       -0.0033             -0.0011
++thr           0.7917    0.8448  0.8670    0.8345        0.0038              0.0039        0.0041              0.0039
+graph+agg+cfr  0.7891    0.8567  0.8692    0.8383        0.0012              0.0157        0.0063              0.0077
+hepsi          0.7967    0.8608  0.8706    0.8427        0.0088              0.0198        0.0077              0.0121
+
+====================================================================================================
+SIZINTI ENJEKSIYONU — pr_auc (P1, 3 fold, C (B+graf))
+====================================================================================================
+model              LR  LightGBM      RF  ortalama  LR (sisirme)  LightGBM (sisirme)  RF (sisirme)  ortalama (sisirme)
+variant                                                                                                              
+sizintisiz     0.8522    0.9220  0.9344    0.9029        0.0000              0.0000        0.0000              0.0000
++graph         0.8548    0.9278  0.9361    0.9063        0.0026              0.0059        0.0017              0.0034
++agg           0.8521    0.9318  0.9385    0.9075       -0.0001              0.0098        0.0041              0.0046
++cfr           0.8519    0.9226  0.9351    0.9032       -0.0003              0.0006        0.0007              0.0003
++thr           0.8522    0.9220  0.9344    0.9029        0.0000              0.0000       -0.0000             -0.0000
+graph+agg+cfr  0.8558    0.9328  0.9386    0.9091        0.0036              0.0108        0.0042              0.0062
+hepsi          0.8558    0.9328  0.9386    0.9091        0.0036              0.0108        0.0042              0.0062
+
+
+=== [41] ec=24 | # ============================================================
+C yardimcilari hazir | varlik tarafi oznitelik: 12 | KAPPA_MASK_SHARE=auto
+
+=== [42] ec=25 | # ============================================================
+========================================================================================================================
+C — cozum katmani (f1)
+========================================================================================================================
+                                kappa_hat       A       C  C κ-mask  Router C|A  Δ Cκ−C  Δ Cκ−A  Δ RC−C       D  D κ-mask  Router D|A  Δ Dκ−D  Δ Dκ−A  Δ RD−D
+Random 5-fold CV      LR              1.0  0.7107  0.7871    0.7871      0.7871  0.0000  0.0764  0.0000  0.7790    0.7790      0.7790  0.0000  0.0683  0.0000
+                      LightGBM        1.0  0.8150  0.8394    0.8394      0.8394  0.0000  0.0244  0.0000  0.8422    0.8422      0.8422  0.0000  0.0272  0.0000
+                      RF              1.0  0.8060  0.8637    0.8600      0.8637 -0.0037  0.0540  0.0000  0.8573    0.8612      0.8573  0.0040  0.0553  0.0000
+                      ORTALAMA        1.0  0.7772  0.8301    0.8288      0.8301 -0.0012  0.0516  0.0000  0.8262    0.8275      0.8262  0.0013  0.0503  0.0000
+GroupKFold (customer) LR              0.0  0.7076  0.6322    0.7315      0.7076  0.0993  0.0240  0.0753  0.6374    0.7157      0.7076  0.0784  0.0082  0.0702
+                      LightGBM        0.0  0.8168  0.7102    0.8192      0.8168  0.1090  0.0024  0.1066  0.5715    0.8169      0.8168  0.2455  0.0001  0.2453
+                      RF              0.0  0.8034  0.7394    0.8151      0.8034  0.0757  0.0117  0.0640  0.7584    0.8171      0.8034  0.0587  0.0137  0.0450
+                      ORTALAMA        0.0  0.7759  0.6940    0.7886      0.7759  0.0947  0.0127  0.0820  0.6558    0.7833      0.7759  0.1275  0.0073  0.1202
+Temporal out-of-time  LR              1.0  0.7001  0.7768    0.7768      0.7768  0.0000  0.0767  0.0000  0.7420    0.7420      0.7420  0.0000  0.0419  0.0000
+                      LightGBM        1.0  0.8296  0.8222    0.8222      0.8222  0.0000 -0.0074  0.0000  0.8175    0.8175      0.8175  0.0000 -0.0121  0.0000
+                      RF              1.0  0.7995  0.8089    0.8125      0.8089  0.0036  0.0130  0.0000  0.8069    0.8133      0.8069  0.0065  0.0138  0.0000
+                      ORTALAMA        1.0  0.7764  0.8027    0.8039      0.8027  0.0012  0.0274  0.0000  0.7888    0.7909      0.7888  0.0022  0.0145  0.0000
+
+========================================================================================================================
+C — cozum katmani (pr_auc)
+========================================================================================================================
+                                kappa_hat       A       C  C κ-mask  Router C|A  Δ Cκ−C  Δ Cκ−A  Δ RC−C       D  D κ-mask  Router D|A  Δ Dκ−D  Δ Dκ−A  Δ RD−D
+Random 5-fold CV      LR              1.0  0.7402  0.8519    0.8519      0.8519 -0.0000  0.1117  0.0000  0.8348    0.8348      0.8348  0.0000  0.0946  0.0000
+                      LightGBM        1.0  0.8975  0.9209    0.9209      0.9209  0.0000  0.0234  0.0000  0.9218    0.9218      0.9218  0.0000  0.0243  0.0000
+                      RF              1.0  0.8807  0.9351    0.9347      0.9351 -0.0004  0.0540  0.0000  0.9325    0.9333      0.9325  0.0008  0.0526  0.0000
+                      ORTALAMA        1.0  0.8394  0.9026    0.9025      0.9026 -0.0001  0.0630  0.0000  0.8964    0.8966      0.8964  0.0003  0.0572  0.0000
+GroupKFold (customer) LR              0.0  0.7385  0.7830    0.7886      0.7385  0.0056  0.0501 -0.0446  0.7652    0.7686      0.7385  0.0034  0.0302 -0.0267
+                      LightGBM        0.0  0.8978  0.8383    0.9012      0.8978  0.0629  0.0034  0.0595  0.7113    0.8980      0.8978  0.1868  0.0002  0.1865
+                      RF              0.0  0.8805  0.7990    0.9011      0.8805  0.1021  0.0206  0.0815  0.7960    0.9013      0.8805  0.1052  0.0208  0.0844
+                      ORTALAMA        0.0  0.8389  0.8068    0.8636      0.8389  0.0569  0.0247  0.0321  0.7575    0.8560      0.8389  0.0985  0.0171  0.0814
+Temporal out-of-time  LR              1.0  0.7329  0.8553    0.8553      0.8553  0.0000  0.1223  0.0000  0.8244    0.8244      0.8244  0.0000  0.0915  0.0000
+                      LightGBM        1.0  0.9228  0.9072    0.9072      0.9072  0.0000 -0.0156  0.0000  0.8818    0.8818      0.8818  0.0000 -0.0410  0.0000
+                      RF              1.0  0.8914  0.8828    0.8822      0.8828 -0.0005 -0.0091  0.0000  0.8875    0.8943      0.8875  0.0067  0.0029  0.0000
+                      ORTALAMA        1.0  0.8490  0.8818    0.8816      0.8818 -0.0002  0.0325  0.0000  0.8646    0.8668      0.8646  0.0022  0.0178  0.0000
+
+
+=== [43] ec=26 | # ============================================================
+==============================================================================================================
+C — kappa-ayrilmis pr_auc (gorulen / gorulmeyen varliklar)
+==============================================================================================================
+model                                            LR  LightGBM      RF  ortalama
+tag  subset     feature_set                                                    
+C_P1 gorulen    A (ham)                      0.7398    0.8975  0.8807    0.8393
+                C (B+graf)                   0.8519    0.9209  0.9351    0.9026
+                C (B+graf) [κ-mask]          0.8519    0.9209  0.9347    0.9025
+                D (A+graf)                   0.8343    0.9218  0.9325    0.8962
+                D (A+graf) [κ-mask]          0.8343    0.9218  0.9333    0.8964
+                Router C (B+graf) | A (ham)  0.8519    0.9209  0.9351    0.9026
+                Router D (A+graf) | A (ham)  0.8343    0.9218  0.9325    0.8962
+C_P2 gorulmeyen A (ham)                      0.7383    0.8978  0.8805    0.8389
+                C (B+graf)                   0.7830    0.8383  0.7990    0.8068
+                C (B+graf) [κ-mask]          0.7876    0.9012  0.9011    0.8633
+                D (A+graf)                   0.7648    0.7113  0.7960    0.7574
+                D (A+graf) [κ-mask]          0.7679    0.8980  0.9013    0.8557
+                Router C (B+graf) | A (ham)  0.7383    0.8978  0.8805    0.8389
+                Router D (A+graf) | A (ham)  0.7383    0.8978  0.8805    0.8389
+C_P3 gorulen    A (ham)                      0.7329    0.9228  0.8914    0.8490
+                C (B+graf)                   0.8553    0.9072  0.8828    0.8818
+                C (B+graf) [κ-mask]          0.8553    0.9072  0.8822    0.8816
+                D (A+graf)                   0.8244    0.8818  0.8875    0.8646
+                D (A+graf) [κ-mask]          0.8244    0.8818  0.8943    0.8668
+                Router C (B+graf) | A (ham)  0.8553    0.9072  0.8828    0.8818
+                Router D (A+graf) | A (ham)  0.8244    0.8818  0.8875    0.8646
+
+==============================================================================================================
+C — kappa-ayrilmis f1 (gorulen / gorulmeyen varliklar)
+==============================================================================================================
+model                                            LR  LightGBM      RF  ortalama
+tag  subset     feature_set                                                    
+C_P1 gorulen    A (ham)                      0.7107    0.8150  0.8060    0.7772
+                C (B+graf)                   0.7871    0.8394  0.8637    0.8301
+                C (B+graf) [κ-mask]          0.7871    0.8394  0.8600    0.8288
+                D (A+graf)                   0.7790    0.8422  0.8573    0.8262
+                D (A+graf) [κ-mask]          0.7790    0.8422  0.8612    0.8275
+                Router C (B+graf) | A (ham)  0.7871    0.8394  0.8637    0.8301
+                Router D (A+graf) | A (ham)  0.7790    0.8422  0.8573    0.8262
+C_P2 gorulmeyen A (ham)                      0.7076    0.8168  0.8034    0.7759
+                C (B+graf)                   0.6322    0.7102  0.7394    0.6940
+                C (B+graf) [κ-mask]          0.7315    0.8192  0.8151    0.7886
+                D (A+graf)                   0.6374    0.5715  0.7584    0.6558
+                D (A+graf) [κ-mask]          0.7157    0.8169  0.8171    0.7833
+                Router C (B+graf) | A (ham)  0.7076    0.8168  0.8034    0.7759
+                Router D (A+graf) | A (ham)  0.7076    0.8168  0.8034    0.7759
+C_P3 gorulen    A (ham)                      0.7001    0.8296  0.7995    0.7764
+                C (B+graf)                   0.7768    0.8222  0.8089    0.8027
+                C (B+graf) [κ-mask]          0.7768    0.8222  0.8125    0.8039
+                D (A+graf)                   0.7420    0.8175  0.8069    0.7888
+                D (A+graf) [κ-mask]          0.7420    0.8175  0.8133    0.7909
+                Router C (B+graf) | A (ham)  0.7768    0.8222  0.8089    0.8027
+                Router D (A+graf) | A (ham)  0.7420    0.8175  0.8069    0.7888
+
+
+=== [44] ec=27 | # ============================================================
+==========================================================================================
+C — imputasyon degismezligi (f1, P2, 1 fold)
+==========================================================================================
+policy                                legacy  row_median  |fark|
+model    feature_set                                            
+DT       A (ham)                      0.8032      0.8032  0.0000
+         C (B+graf)                   0.1417      0.6478  0.5061
+         C (B+graf) [κ-mask]          0.8033      0.8033  0.0000
+         D (A+graf)                   0.0281      0.7863  0.7581
+         D (A+graf) [κ-mask]          0.8032      0.8032  0.0000
+         Router C (B+graf) | A (ham)  0.8032      0.8032  0.0000
+         Router D (A+graf) | A (ham)  0.8032      0.8032  0.0000
+LR       A (ham)                      0.7323      0.7323  0.0000
+         C (B+graf)                   0.7160      0.6497  0.0663
+         C (B+graf) [κ-mask]          0.7543      0.7543  0.0000
+         D (A+graf)                   0.3640      0.6447  0.2807
+         D (A+graf) [κ-mask]          0.7374      0.7374  0.0000
+         Router C (B+graf) | A (ham)  0.7323      0.7323  0.0000
+         Router D (A+graf) | A (ham)  0.7323      0.7323  0.0000
+LightGBM A (ham)                      0.8403      0.8403  0.0000
+         C (B+graf)                   0.6015      0.6535  0.0519
+         C (B+graf) [κ-mask]          0.8393      0.8393  0.0000
+         D (A+graf)                   0.2930      0.6125  0.3194
+         D (A+graf) [κ-mask]          0.8395      0.8395  0.0000
+         Router C (B+graf) | A (ham)  0.8403      0.8403  0.0000
+         Router D (A+graf) | A (ham)  0.8403      0.8403  0.0000
+
+Ortalama |fark| (yontem bazinda):
+kappa-mask    0.0000
+router        0.0000
+standart      0.2203
+
+==========================================================================================
+C — imputasyon degismezligi (pr_auc, P2, 1 fold)
+==========================================================================================
+policy                                legacy  row_median  |fark|
+model    feature_set                                            
+DT       A (ham)                      0.7536      0.7536  0.0000
+         C (B+graf)                   0.0608      0.4792  0.4183
+         C (B+graf) [κ-mask]          0.7604      0.7604  0.0000
+         D (A+graf)                   0.0146      0.6699  0.6553
+         D (A+graf) [κ-mask]          0.7708      0.7708  0.0000
+         Router C (B+graf) | A (ham)  0.7536      0.7536  0.0000
+         Router D (A+graf) | A (ham)  0.7536      0.7536  0.0000
+LR       A (ham)                      0.7669      0.7669  0.0000
+         C (B+graf)                   0.8121      0.8120  0.0001
+         C (B+graf) [κ-mask]          0.8170      0.8170  0.0000
+         D (A+graf)                   0.7943      0.7943  0.0000
+         D (A+graf) [κ-mask]          0.7989      0.7989  0.0000
+         Router C (B+graf) | A (ham)  0.7669      0.7669  0.0000
+         Router D (A+graf) | A (ham)  0.7669      0.7669  0.0000
+LightGBM A (ham)                      0.9150      0.9150  0.0000
+         C (B+graf)                   0.7949      0.8089  0.0139
+         C (B+graf) [κ-mask]          0.9182      0.9182  0.0000
+         D (A+graf)                   0.6618      0.8460  0.1842
+         D (A+graf) [κ-mask]          0.9174      0.9174  0.0000
+         Router C (B+graf) | A (ham)  0.9150      0.9150  0.0000
+         Router D (A+graf) | A (ham)  0.9150      0.9150  0.0000
+
+Ortalama |fark| (yontem bazinda):
+kappa-mask    0.0000
+router        0.0000
+standart      0.1413
+
+
+=== [46] ec=28 | all_res = pd.concat([res_random, res_group, res_temporal], ignore_inde
+==============================================================================================================
+PROTOKOL KARŞILAŞTIRMASI — F1-Score
+==============================================================================================================
+protocol    GroupKFold (customer)                                         Random 5-fold CV                                         Temporal out-of-time                                        
+feature_set               A (ham) B (A+davranışsal) C (B+graf) D (A+graf)          A (ham) B (A+davranışsal) C (B+graf) D (A+graf)              A (ham) B (A+davranışsal) C (B+graf) D (A+graf)
+model                                                                                                                                                                                          
+DT                         0.7768            0.6611     0.5409     0.7531           0.7784            0.8000     0.8033     0.8210               0.7801            0.6444     0.6261     0.5976
+GBDT                       0.8111            0.7096     0.7185     0.6995           0.8132            0.8451     0.8437     0.8448               0.8336            0.8403     0.8249     0.8197
+KNN                        0.5777            0.7382     0.7340     0.6689           0.5862            0.7294     0.7151     0.6637               0.6601            0.6779     0.6741     0.5406
+LR                         0.7076            0.6218     0.6322     0.6374           0.7107            0.7803     0.7871     0.7790               0.7001            0.7490     0.7768     0.7420
+LightGBM                   0.8168            0.7150     0.7102     0.5715           0.8150            0.8356     0.8394     0.8422               0.8296            0.8178     0.8222     0.8175
+MLP                        0.8017            0.7608     0.7549     0.7403           0.8033            0.8530     0.8519     0.8386               0.8145            0.8280     0.8353     0.8091
+NB                         0.6905            0.7082     0.6704     0.7112           0.6923            0.6853     0.5429     0.6332               0.6682            0.6526     0.5118     0.5823
+RF                         0.8034            0.7465     0.7394     0.7584           0.8060            0.8607     0.8637     0.8573               0.7995            0.8354     0.8089     0.8069
+SVM                        0.7158            0.5945     0.6614     0.6978           0.7175            0.7811     0.7928     0.7849               0.6858            0.7399     0.7763     0.7657
+XGBoost                    0.8092            0.7105     0.7213     0.7219           0.8119            0.8379     0.8383     0.8347               0.8213            0.8117     0.8109     0.7905
+
+==============================================================================================================
+KATKI AYRIŞTIRMASI (hangi öznitelik grubu ne kadar katkı sağlıyor?)
+==============================================================================================================
+             B-A (davranışsal)                                              C-B (graf net)                                              D-A (saf graf)                                      
+protocol GroupKFold (customer) Random 5-fold CV Temporal out-of-time GroupKFold (customer) Random 5-fold CV Temporal out-of-time GroupKFold (customer) Random 5-fold CV Temporal out-of-time
+model                                                                                                                                                                                       
+DT                     -0.1157           0.0216              -0.1357               -0.1203           0.0033              -0.0183               -0.0237           0.0426              -0.1825
+GBDT                   -0.1015           0.0319               0.0067                0.0089          -0.0015              -0.0154               -0.1116           0.0316              -0.0139
+KNN                     0.1604           0.1432               0.0179               -0.0042          -0.0144              -0.0038                0.0912           0.0774              -0.1195
+LR                     -0.0858           0.0696               0.0488                0.0104           0.0068               0.0279               -0.0702           0.0683               0.0419
+LightGBM               -0.1018           0.0207              -0.0118               -0.0048           0.0037               0.0044               -0.2453           0.0272              -0.0121
+MLP                    -0.0410           0.0497               0.0135               -0.0059          -0.0012               0.0073               -0.0614           0.0353              -0.0054
+NB                      0.0177          -0.0070              -0.0156               -0.0378          -0.1424              -0.1408                0.0207          -0.0591              -0.0860
+RF                     -0.0569           0.0547               0.0359               -0.0071           0.0030              -0.0265               -0.0450           0.0513               0.0074
+SVM                    -0.1213           0.0636               0.0541                0.0669           0.0117               0.0364               -0.0179           0.0674               0.0799
+XGBoost                -0.0987           0.0260              -0.0096                0.0108           0.0004              -0.0009               -0.0872           0.0228              -0.0309
+
+=== [47] ec=29 | fig, axes = plt.subplots(1, 3, figsize=(18,5), sharey=True)
+<Figure size 1800x500 with 3 Axes>
+=== [49] ec=30 | def paired_test(res, set1, set2, metric='f1'):
+====================================================================================================
+Random 5-fold: Set C vs Set B  (graf özniteliklerinin net katkısı)
+====================================================================================================
+   model  mean_diff  std_diff  t_stat  p_ttest  p_wilcoxon  cohens_d significant_p<0.05
+      LR    0.00679   0.00369   4.109   0.0147      0.0625     1.837                YES
+      NB   -0.14245   0.00619 -51.478   0.0000      0.0625   -23.022                YES
+      DT    0.00329   0.00546   1.349   0.2487      0.3125     0.603                 no
+     KNN   -0.01436   0.00446  -7.199   0.0020      0.0625    -3.220                YES
+     SVM    0.01172   0.00814   3.218   0.0324      0.0625     1.439                YES
+      RF    0.00302   0.00307   2.198   0.0929      0.1250     0.983                 no
+    GBDT   -0.00148   0.00352  -0.942   0.3996      0.6250    -0.421                 no
+ XGBoost    0.00044   0.00750   0.132   0.9012      0.8125     0.059                 no
+LightGBM    0.00372   0.00858   0.969   0.3875      0.8125     0.433                 no
+     MLP   -0.00118   0.00360  -0.731   0.5055      0.6250    -0.327                 no
+
+Random 5-fold: Set D vs Set A  (saf graf katkısı)
+   model  mean_diff  std_diff  t_stat  p_ttest  p_wilcoxon  cohens_d significant_p<0.05
+      LR    0.06828   0.01099  13.892   0.0002      0.0625     6.212                YES
+      NB   -0.05906   0.00427 -30.903   0.0000      0.0625   -13.820                YES
+      DT    0.04265   0.01072   8.892   0.0009      0.0625     3.977                YES
+     KNN    0.07741   0.04682   3.697   0.0209      0.0625     1.653                YES
+     SVM    0.06741   0.00668  22.555   0.0000      0.0625    10.087                YES
+      RF    0.05131   0.00423  27.153   0.0000      0.0625    12.143                YES
+    GBDT    0.03159   0.00886   7.976   0.0013      0.0625     3.567                YES
+ XGBoost    0.02276   0.01614   3.153   0.0344      0.0625     1.410                YES
+LightGBM    0.02722   0.00234  25.979   0.0000      0.0625    11.618                YES
+     MLP    0.03529   0.01321   5.976   0.0039      0.0625     2.672                YES
+
+====================================================================================================
+GroupKFold: Set C vs Set B  (graf özniteliklerinin net katkısı)
+====================================================================================================
+   model  mean_diff  std_diff  t_stat  p_ttest  p_wilcoxon  cohens_d significant_p<0.05
+      LR    0.01043   0.01364   1.710   0.1625      0.1875     0.765                 no
+      NB   -0.03776   0.01706  -4.949   0.0078      0.0625    -2.213                YES
+      DT   -0.12028   0.11976  -2.246   0.0881      0.0625    -1.004                 no
+     KNN   -0.00420   0.01764  -0.532   0.6226      0.8125    -0.238                 no
+     SVM    0.06687   0.03693   4.048   0.0155      0.0625     1.811                YES
+      RF   -0.00709   0.04151  -0.382   0.7219      1.0000    -0.171                 no
+    GBDT    0.00894   0.01924   1.038   0.3578      0.4375     0.464                 no
+ XGBoost    0.01082   0.03909   0.619   0.5696      0.8125     0.277                 no
+LightGBM   -0.00478   0.03776  -0.283   0.7911      1.0000    -0.127                 no
+     MLP   -0.00594   0.03346  -0.397   0.7117      0.8125    -0.178                 no
+
+GroupKFold: Set D vs Set A  (saf graf katkısı)
+   model  mean_diff  std_diff  t_stat  p_ttest  p_wilcoxon  cohens_d significant_p<0.05
+      LR   -0.07020   0.00986 -15.913   0.0001      0.0625    -7.117                YES
+      NB    0.02074   0.00614   7.554   0.0016      0.0625     3.378                YES
+      DT   -0.02371   0.01298  -4.085   0.0150      0.0625    -1.827                YES
+     KNN    0.09120   0.05836   3.494   0.0250      0.0625     1.563                YES
+     SVM   -0.01793   0.00991  -4.044   0.0156      0.0625    -1.809                YES
+      RF   -0.04497   0.02993  -3.360   0.0283      0.0625    -1.503                YES
+    GBDT   -0.11165   0.16351  -1.527   0.2015      0.0625    -0.683                 no
+ XGBoost   -0.08724   0.06597  -2.957   0.0417      0.0625    -1.322                YES
+LightGBM   -0.24534   0.11616  -4.723   0.0092      0.0625    -2.112                YES
+     MLP   -0.06140   0.04161  -3.300   0.0299      0.0625    -1.476                YES
+
+
+=== [51] ec=31 | # ============================================================
+====================================================================================================
+B9 — Anlamli model sayisi: duz t-testi vs duzeltilmis t-testi + Holm
+====================================================================================================
+                                                 ort_fark  anlamli_naive  anlamli_duzeltilmis_holm  model
+protocol comparison                      metric                                                          
+P1       B (A+davranışsal) vs A (ham)    f1        0.0474              9                         8     10
+                                         pr_auc    0.0302              9                         8     10
+         C (B+graf) vs B (A+davranışsal) f1       -0.0130              4                         1     10
+                                         pr_auc   -0.0153              4                         2     10
+         D (A+graf) vs A (ham)           f1        0.0365             10                         8     10
+                                         pr_auc    0.0228              9                         7     10
+P2       B (A+davranışsal) vs A (ham)    f1       -0.0544              9                         4     10
+                                         pr_auc   -0.0660              6                         2     10
+         C (B+graf) vs B (A+davranışsal) f1       -0.0083              2                         0     10
+                                         pr_auc   -0.0016              3                         2     10
+         D (A+graf) vs A (ham)           f1       -0.0551              9                         1     10
+                                         pr_auc   -0.0549              6                         3     10
+
+--- P1 | B (A+davranışsal) vs A (ham) | F1
+   model  mean_diff  t_corr  p_naive  p_corr  p_holm  holm_sig
+      DT     0.0216  3.3969   0.0070  0.0274  0.0547     False
+    GBDT     0.0319  5.2779   0.0014  0.0062  0.0309      True
+     KNN     0.1432  4.4097   0.0027  0.0116  0.0464      True
+      LR     0.0696  6.2111   0.0007  0.0034  0.0205      True
+LightGBM     0.0207  4.0141   0.0038  0.0159  0.0478      True
+     MLP     0.0497  8.3108   0.0002  0.0011  0.0103      True
+      NB    -0.0070 -1.1136   0.1702  0.3279  0.3279     False
+      RF     0.0547 17.4000   0.0000  0.0001  0.0006      True
+     SVM     0.0636  7.0015   0.0005  0.0022  0.0153      True
+ XGBoost     0.0260  7.9721   0.0003  0.0013  0.0107      True
+
+--- P1 | C (B+graf) vs B (A+davranışsal) | F1
+   model  mean_diff   t_corr  p_naive  p_corr  p_holm  holm_sig
+      DT     0.0033   0.8992   0.2487  0.4194  1.0000     False
+    GBDT    -0.0015  -0.6279   0.3996  0.5641  1.0000     False
+     KNN    -0.0144  -4.7997   0.0020  0.0087  0.0779     False
+      LR     0.0068   2.7392   0.0147  0.0519  0.4156     False
+LightGBM     0.0037   0.6459   0.3875  0.5535  1.0000     False
+     MLP    -0.0012  -0.4871   0.5055  0.6516  1.0000     False
+      NB    -0.1424 -34.3188   0.0000  0.0000  0.0000      True
+      RF     0.0030   1.4651   0.0929  0.2168  1.0000     False
+     SVM     0.0117   2.1451   0.0324  0.0985  0.6897     False
+ XGBoost     0.0004   0.0881   0.9012  0.9340  1.0000     False
+
+--- P1 | D (A+graf) vs A (ham) | F1
+   model  mean_diff   t_corr  p_naive  p_corr  p_holm  holm_sig
+      DT     0.0426   5.9278   0.0009  0.0041  0.0203      True
+    GBDT     0.0316   5.3173   0.0013  0.0060  0.0241      True
+     KNN     0.0774   2.4648   0.0209  0.0693  0.1387     False
+      LR     0.0683   9.2610   0.0002  0.0008  0.0045      True
+LightGBM     0.0272  17.3196   0.0000  0.0001  0.0005      True
+     MLP     0.0353   3.9839   0.0039  0.0163  0.0490      True
+      NB    -0.0591 -20.6017   0.0000  0.0000  0.0003      True
+      RF     0.0513  18.1022   0.0000  0.0001  0.0005      True
+     SVM     0.0674  15.0370   0.0000  0.0001  0.0008      True
+ XGBoost     0.0228   2.1023   0.0344  0.1034  0.1387     False
+
+--- P2 | B (A+davranışsal) vs A (ham) | F1
+   model  mean_diff   t_corr  p_naive  p_corr  p_holm  holm_sig
+      DT    -0.1157  -3.4596   0.0066  0.0258  0.1550     False
+    GBDT    -0.1015  -2.0651   0.0363  0.1078  0.2157     False
+     KNN     0.1604   5.3671   0.0013  0.0058  0.0407      True
+      LR    -0.0858 -12.9933   0.0000  0.0002  0.0020      True
+LightGBM    -0.1018  -2.9030   0.0121  0.0440  0.1759     False
+     MLP    -0.0410  -1.7103   0.0623  0.1624  0.2157     False
+      NB     0.0177   3.2234   0.0084  0.0322  0.1609     False
+      RF    -0.0569  -2.5266   0.0193  0.0649  0.1947     False
+     SVM    -0.1213  -6.6704   0.0006  0.0026  0.0236      True
+ XGBoost    -0.0987  -6.5002   0.0006  0.0029  0.0236      True
+
+--- P2 | C (B+graf) vs B (A+davranışsal) | F1
+   model  mean_diff  t_corr  p_naive  p_corr  p_holm  holm_sig
+      DT    -0.1203 -1.4972   0.0881  0.2087  1.0000     False
+    GBDT     0.0089  0.6922   0.3578  0.5269  1.0000     False
+     KNN    -0.0042 -0.3550   0.6226  0.7405  1.0000     False
+      LR     0.0104  1.1399   0.1625  0.3180  1.0000     False
+LightGBM    -0.0048 -0.1888   0.7911  0.8594  1.0000     False
+     MLP    -0.0059 -0.2646   0.7117  0.8044  1.0000     False
+      NB    -0.0378 -3.2993   0.0078  0.0300  0.2995     False
+      RF    -0.0071 -0.2547   0.7219  0.8115  1.0000     False
+     SVM     0.0669  2.6989   0.0155  0.0542  0.4874     False
+ XGBoost     0.0108  0.4125   0.5696  0.7011  1.0000     False
+
+--- P2 | D (A+graf) vs A (ham) | F1
+   model  mean_diff   t_corr  p_naive  p_corr  p_holm  holm_sig
+      DT    -0.0237  -2.7236   0.0150  0.0528  0.3695     False
+    GBDT    -0.1116  -1.0179   0.2015  0.3663  0.4014     False
+     KNN     0.0912   2.3296   0.0250  0.0803  0.4014     False
+      LR    -0.0702 -10.6088   0.0001  0.0004  0.0045      True
+LightGBM    -0.2453  -3.1484   0.0092  0.0346  0.2765     False
+     MLP    -0.0614  -2.1997   0.0299  0.0927  0.4014     False
+      NB     0.0207   5.0363   0.0016  0.0073  0.0657     False
+      RF    -0.0450  -2.2400   0.0283  0.0886  0.4014     False
+     SVM    -0.0179  -2.6960   0.0156  0.0543  0.3695     False
+ XGBoost    -0.0872  -1.9713   0.0417  0.1200  0.4014     False
+
+
+=== [53] ec=32 | SAMPLING_RATIO = 1/3   # B10: tum yontemler ayni hedef azinlik/cogunlu
+  Strateji: None
+  Strateji: RandomUnder
+  Strateji: NearMiss
+  Strateji: SMOTE
+  Strateji: SMOTETomek
+====================================================================================================
+SINIF DENGESİZLİĞİ STRATEJİLERİ (RF + Set C, sızıntısız 5-fold CV)
+====================================================================================================
+             accuracy  precision  recall      f1  auc_roc  pr_auc     mcc     fpr
+strategy                                                                         
+None           0.9968     0.8994  0.8296  0.8629   0.9986  0.9344  0.8621  0.0011
+RandomUnder    0.9855     0.4590  0.9738  0.6224   0.9980  0.8813  0.6625  0.0143
+NearMiss       0.9668     0.2562  0.8856  0.3963   0.9878  0.8320  0.4654  0.0322
+SMOTE          0.9944     0.7205  0.8808  0.7926   0.9982  0.9037  0.7939  0.0042
+SMOTETomek     0.9942     0.7069  0.8917  0.7885   0.9982  0.9043  0.7911  0.0045
+
+=== [55] ec=33 | best_model_name = piv_t['C (B+graf)'].idxmax()
+Zamansal protokolde en iyi model: MLP
+    graf=0.3s  centrality=14.7s  uygula=3.4s | düğüm=4162  kenar=41400  topluluk=3  görülmeyen müşteri=%0.00  kappa=1.000  impute=row_median
+Eğitim fold'unda seçilen eşik: 0.4323  (sabit 0.5 yerine)
+Eğitim süresi: 108.5s
+
+              precision    recall  f1-score   support
+
+      Normal     0.9978    0.9987    0.9983    128149
+       Fraud     0.8712    0.8021    0.8353      1400
+
+    accuracy                         0.9966    129549
+   macro avg     0.9345    0.9004    0.9168    129549
+weighted avg     0.9965    0.9966    0.9965    129549
+
+Tüm metrikler:
+  accuracy                : 0.9966
+  precision               : 0.8712
+  recall                  : 0.8021
+  f1                      : 0.8353
+  auc_roc                 : 0.9984
+  pr_auc                  : 0.9173
+  mcc                     : 0.8343
+  fpr                     : 0.0013
+  precision_at_1pct       : 0.8687
+  recall_at_1pct          : 0.8036
+  tn                      : 127983
+  fp                      : 166
+  fn                      : 277
+  tp                      : 1123
+
+======================================================================
+EŞİK SEÇİMİNİN ETKİSİ
+======================================================================
+           Sabit 0.5  Seçilen 0.432
+precision     0.8908         0.8712
+recall        0.7750         0.8021
+f1            0.8289         0.8353
+mcc           0.8292         0.8343
+fpr           0.0010         0.0013
+
+NOT: AUC-ROC ve PR-AUC eşikten bağımsızdır, değişmez.
+  AUC-ROC=0.9984  PR-AUC=0.9173
+
+=== [56] ec=None | fig, ax = plt.subplots(1, 3, figsize=(17,4.5))
+=== [58] ec=35 | try:
+SHAP için model: LightGBM
+
+En önemli 15 öznitelik:
+               feature  mean_abs_shap         category
+     merch_eigenvector       0.627642      Graph (C\B)
+                amount       0.117285          Raw (A)
+      merch_avg_amount       0.078102 Behavioral (B\A)
+      cust_betweenness       0.065804      Graph (C\B)
+       cust_avg_amount       0.053626 Behavioral (B\A)
+      cust_eigenvector       0.050729      Graph (C\B)
+merch_unique_customers       0.046029 Behavioral (B\A)
+         merch_n_trans       0.031096 Behavioral (B\A)
+       cust_std_amount       0.026763 Behavioral (B\A)
+     merch_betweenness       0.017870      Graph (C\B)
+          category_enc       0.016456          Raw (A)
+   amount_to_merch_avg       0.015051 Behavioral (B\A)
+       cust_max_amount       0.013321 Behavioral (B\A)
+         cust_pagerank       0.011940      Graph (C\B)
+            amount_log       0.009707          Raw (A)
+
+======================================================================
+KATEGORİ BAZINDA SHAP KATKI PAYI
+======================================================================
+                      sum     mean  count  share_%
+category                                          
+Behavioral (B\A)  0.28935  0.02411     12    23.59
+Graph (C\B)       0.78493  0.08721      9    63.98
+Raw (A)           0.15256  0.02179      7    12.44
+
+<Figure size 1500x500 with 2 Axes>
+=== [60] ec=36 | tim_all = pd.concat([tim_random.assign(protocol='Random 5-fold'),
+==========================================================================================
+GRAF ÖZNİTELİK ÇIKARIM SÜRELERİ
+==========================================================================================
+               graph_build_s  centrality_s  apply_s  n_nodes  n_edges  n_communities  unseen_customer_frac
+protocol                                                                                                  
+GroupKFold             0.303        12.615    6.435   3339.6  37705.6            3.0                   1.0
+Random 5-fold          0.288        16.097    3.260   4162.0  42442.6            3.0                   0.0
+Temporal               0.513        14.894    3.250   4162.0  41400.0            3.0                   0.0
+
+Algoritma bazlı ortalama süre (saniye):
+betweenness    13.183
+louvain         0.985
+eigenvector     0.116
+pagerank        0.100
+degree          0.022
+
+Toplam öznitelik çıkarım süresi : 19.22 s
+İşlem sayısı                     : 594,643
+İşlem başına maliyet             : 32.32 mikrosaniye
+Verim                            : 30,941 işlem/saniye
+
+Model eğitim süreleri (saniye):
+feature_set  A (ham)  B (A+davranışsal)  C (B+graf)  D (A+graf)
+model                                                          
+DT              4.15              13.92       16.25        6.67
+GBDT            6.17               8.72       11.63        7.53
+KNN             0.44               2.88        3.28        2.75
+LR              2.01               7.56       12.67        5.27
+LightGBM        3.85               6.02        7.56        5.00
+MLP           139.46              98.85      112.02      149.69
+NB              0.56               1.02        1.06        0.92
+RF             49.58              93.33       80.01       56.94
+SVM             5.80              17.91       39.59       18.56
+XGBoost         4.97               7.12        9.19        6.28
+
+timing_analysis.json kaydedildi.
+
+=== [62] ec=37 | RUN_GNN = False   # PyTorch Geometric kuruluysa True yapın
+RUN_GNN=False. GraphSAGE karşılaştırması atlandı.
+Makalede raporlanacak: graf öznitelik çıkarımı = 19.2s, 30,941 işlem/saniye
+
+=== [64] ec=38 | tables = {}
+TABLE 1 — Öznitelik kategorileri ve setlere dağılımı
+                     Category Present in sets  # features
+Behavioral aggregate (Cat. 3)            B, C          12
+    Centrality-based (Cat. 1)            C, D           8
+     Community-based (Cat. 2)            C, D           1
+              Raw transaction      A, B, C, D           7
+
+TABLE 2 — Sınıf dengeleme stratejileri
+             accuracy  precision  recall      f1  auc_roc  pr_auc     mcc     fpr
+strategy                                                                         
+None           0.9968     0.8994  0.8296  0.8629   0.9986  0.9344  0.8621  0.0011
+RandomUnder    0.9855     0.4590  0.9738  0.6224   0.9980  0.8813  0.6625  0.0143
+NearMiss       0.9668     0.2562  0.8856  0.3963   0.9878  0.8320  0.4654  0.0322
+SMOTE          0.9944     0.7205  0.8808  0.7926   0.9982  0.9037  0.7939  0.0042
+SMOTETomek     0.9942     0.7069  0.8917  0.7885   0.9982  0.9043  0.7911  0.0045
+
+TABLE3_RANDOM_CV
+feature_set  A (ham)  B (A+davranışsal)  C (B+graf)  D (A+graf)     C-A     C-B     D-A
+model                                                                                  
+DT            0.7784             0.8000      0.8033      0.8210  0.0249  0.0033  0.0426
+GBDT          0.8132             0.8451      0.8437      0.8448  0.0305 -0.0014  0.0316
+KNN           0.5862             0.7294      0.7151      0.6637  0.1289 -0.0143  0.0775
+LR            0.7107             0.7803      0.7871      0.7790  0.0764  0.0068  0.0683
+LightGBM      0.8150             0.8356      0.8394      0.8422  0.0244  0.0038  0.0272
+MLP           0.8033             0.8530      0.8519      0.8386  0.0486 -0.0011  0.0353
+NB            0.6923             0.6853      0.5429      0.6332 -0.1494 -0.1424 -0.0591
+RF            0.8060             0.8607      0.8637      0.8573  0.0577  0.0030  0.0513
+SVM           0.7175             0.7811      0.7928      0.7849  0.0753  0.0117  0.0674
+XGBoost       0.8119             0.8379      0.8383      0.8347  0.0264  0.0004  0.0228
+
+TABLE4_GROUPKFOLD
+feature_set  A (ham)  B (A+davranışsal)  C (B+graf)  D (A+graf)     C-A     C-B     D-A
+model                                                                                  
+DT            0.7768             0.6611      0.5409      0.7531 -0.2359 -0.1202 -0.0237
+GBDT          0.8111             0.7096      0.7185      0.6995 -0.0926  0.0089 -0.1116
+KNN           0.5777             0.7382      0.7340      0.6689  0.1563 -0.0042  0.0912
+LR            0.7076             0.6218      0.6322      0.6374 -0.0754  0.0104 -0.0702
+LightGBM      0.8168             0.7150      0.7102      0.5715 -0.1066 -0.0048 -0.2453
+MLP           0.8017             0.7608      0.7549      0.7403 -0.0468 -0.0059 -0.0614
+NB            0.6905             0.7082      0.6704      0.7112 -0.0201 -0.0378  0.0207
+RF            0.8034             0.7465      0.7394      0.7584 -0.0640 -0.0071 -0.0450
+SVM           0.7158             0.5945      0.6614      0.6978 -0.0544  0.0669 -0.0180
+XGBoost       0.8092             0.7105      0.7213      0.7219 -0.0879  0.0108 -0.0873
+
+TABLE5_TEMPORAL
+feature_set  A (ham)  B (A+davranışsal)  C (B+graf)  D (A+graf)     C-A     C-B     D-A
+model                                                                                  
+DT            0.7801             0.6444      0.6261      0.5976 -0.1540 -0.0183 -0.1825
+GBDT          0.8336             0.8403      0.8249      0.8197 -0.0087 -0.0154 -0.0139
+KNN           0.6601             0.6779      0.6741      0.5406  0.0140 -0.0038 -0.1195
+LR            0.7001             0.7490      0.7768      0.7420  0.0767  0.0278  0.0419
+LightGBM      0.8296             0.8178      0.8222      0.8175 -0.0074  0.0044 -0.0121
+MLP           0.8145             0.8280      0.8353      0.8091  0.0208  0.0073 -0.0054
+NB            0.6682             0.6526      0.5118      0.5823 -0.1564 -0.1408 -0.0859
+RF            0.7995             0.8354      0.8089      0.8069  0.0094 -0.0265  0.0074
+SVM           0.6858             0.7399      0.7763      0.7657  0.0905  0.0364  0.0799
+XGBoost       0.8213             0.8117      0.8109      0.7905 -0.0104 -0.0008 -0.0308
+
+TABLE 6 — İstatistiksel anlamlılık (C vs B, random CV)
+   model  mean_diff  std_diff  t_stat  p_ttest  p_wilcoxon  cohens_d significant_p<0.05
+      LR    0.00679   0.00369   4.109   0.0147      0.0625     1.837                YES
+      NB   -0.14245   0.00619 -51.478   0.0000      0.0625   -23.022                YES
+      DT    0.00329   0.00546   1.349   0.2487      0.3125     0.603                 no
+     KNN   -0.01436   0.00446  -7.199   0.0020      0.0625    -3.220                YES
+     SVM    0.01172   0.00814   3.218   0.0324      0.0625     1.439                YES
+      RF    0.00302   0.00307   2.198   0.0929      0.1250     0.983                 no
+    GBDT   -0.00148   0.00352  -0.942   0.3996      0.6250    -0.421                 no
+ XGBoost    0.00044   0.00750   0.132   0.9012      0.8125     0.059                 no
+LightGBM    0.00372   0.00858   0.969   0.3875      0.8125     0.433                 no
+     MLP   -0.00118   0.00360  -0.731   0.5055      0.6250    -0.327                 no
+
+TABLE 7 — Hesaplama maliyeti
+               graph_build_s  centrality_s  apply_s  n_nodes  n_edges  n_communities  unseen_customer_frac
+protocol                                                                                                  
+GroupKFold             0.303        12.615    6.435   3339.6  37705.6            3.0                   1.0
+Random 5-fold          0.288        16.097    3.260   4162.0  42442.6            3.0                   0.0
+Temporal               0.513        14.894    3.250   4162.0  41400.0            3.0                   0.0
+
+paper_tables_banksim.xlsx kaydedildi.
+
+=== [66] ec=39 | print('='*100)
+====================================================================================================
+SIZINTISIZ PROTOKOLLER ALTINDA ANA BULGULAR
+====================================================================================================
+
+Rastgele 5-fold CV:
+  En iyi model / F1        : RF / 0.8637
+  Ortalama B-A (davranışsal): +0.0474
+  Ortalama D-A (saf graf)   : +0.0365
+  Ortalama C-B (graf net)   : -0.0130
+
+GroupKFold (müşteri):
+  En iyi model / F1        : MLP / 0.7549
+  Ortalama B-A (davranışsal): -0.0544
+  Ortalama D-A (saf graf)   : -0.0551
+  Ortalama C-B (graf net)   : -0.0083
+
+Zamansal out-of-time:
+  En iyi model / F1        : MLP / 0.8353
+  Ortalama B-A (davranışsal): +0.0004
+  Ortalama D-A (saf graf)   : -0.0321
+  Ortalama C-B (graf net)   : -0.0130
+
+====================================================================================================
+YORUM ŞABLONU (makale için)
+====================================================================================================
+
+1. Sızıntısız protokol altında performans, önceki (sızıntılı) sürüme kıyasla düştü.
+   Bu beklenen ve doğru sonuçtur: önceki değerler community_fraud_rate'in tüm veriden
+   hesaplanması nedeniyle şişkindi.
+
+2. Davranışsal aggregate'ler (B-A) iyileşmenin büyük kısmını sağlıyor. Makalede açıkça belirtilmeli.
+
+3. Graf öznitelikleri tek başına (Set D = A + graf) ölçüldüğünde anlamlı katkı sağlıyor:
+   ortalama D-A = -0.0321 (zamansal protokol).
+   Yani graf öznitelikleri gereksiz değil; davranışsal aggregate'lerle
+   kısmen örtüşen bilgi taşıyorlar.
+
+4. Zamansal protokolde graf katkısı (C-B = -0.0130) ile rastgele CV'deki
+   katkıyı (-0.0130) karşılaştırın. Fark, graf özniteliklerinin
+   zamana karşı genellenebilirliği hakkında bilgi verir.
+
+5. Cold-start oranı: test setinde eğitimde görülmemiş müşteri oranı
+   %0.00. Bu, cold-start politikasının
+   sonuçlar üzerindeki etkisini değerlendirmek için raporlanmalı.
+
+6. Hesaplama maliyeti: 19.2s toplam çıkarım,
+   30,941 işlem/saniye verim.
+
+

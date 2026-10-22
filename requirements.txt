@@ -1,0 +1,18 @@
+# Packages used by the notebooks (Google Colab, October 2026).
+# For an exact record, run `pip freeze > requirements_colab.txt` in the Colab session and add it to this archive.
+pandas
+numpy
+scipy
+scikit-learn
+networkx
+python-louvain
+xgboost
+lightgbm
+imbalanced-learn
+shap
+matplotlib
+seaborn
+openpyxl
+torch
+torch_geometric
+gdown

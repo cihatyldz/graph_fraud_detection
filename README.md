@@ -1,312 +1,70 @@
-# Graph-Based Feature Engineering for Financial Fraud Detection
+# SAFE-G: split-aware evaluation of graph-derived features for fraud detection
 
-> **Leak-Free Graph Feature Engineering Pipeline for Credit Card / Banking Fraud Detection**
+Reproducibility package for the manuscript *"SAFE-G: Split-aware evaluation of graph-derived features for fraud
+detection, and why entity coverage decides whether they help"* (C. Yıldız, H. Çoban Eroğlu, Doğuş University).
 
-A rigorous, reproducible machine learning pipeline that investigates the contribution of **graph-based features** (centrality metrics, community detection) to financial fraud detection. The project employs a strict **leak-free** evaluation protocol — all features (graph, behavioral aggregates, community fraud rates, imputations, categorical encodings) are computed exclusively from training data within each cross-validation fold.
+The notebooks are provided **with their outputs**: every number in the manuscript can be traced to a printed
+cell output, and the scripts in `paper/` regenerate all manuscript tables and Figure 1 from those outputs.
 
----
+## Contents
 
-## 📌 Highlights
+| Path | Purpose | Manuscript |
+|---|---|---|
+| `notebooks/ieee_cis_pipeline_v11_D1.ipynb` | IEEE-CIS: audit, falsification test, P1/P2/P3 grids (10 models), strong baseline (A_full), leakage injection, coverage-aware remedies (router, κ-mask), κ-stratified metrics, imputation invariance, corrected statistics, resampling, threshold analysis, SHAP, cost, **P4 rolling-origin** | Tables 1–7, 9, A1, A4 |
+| `notebooks/elliptic_safeg_E4.ipynb` | Elliptic++: data checks, wallet-feature leakage check, audit, falsification test, P1/P3/P4 grids, remedies, κ-stratified metrics, corrected statistics, **strong baseline (A+AGG) with router / κ-mask** (E4); loads the GNN results of E3 | Tables 1, 3–8, A3, A4, Fig. 1 |
+| `notebooks/elliptic_safeg_E3_gnn.ipynb` | Elliptic++: GCN and GraphSAGE training under the same partitions (3 seeds), seed variance, latency measurement | Table 8, Sect. 5.7 |
+| `notebooks/banksim_leakfree_v11_D1.ipynb` | BankSim: audit (shortcut case), falsification test, P1/P2/P3 grids, leakage injection, remedies, corrected statistics, resampling, SHAP | Tables 1–4, 9, A2 |
+| `paper/safeg_numbers.py` | Parses the frozen notebook outputs (`*.txt`) into data structures | – |
+| `paper/tables.py`, `paper/figures.py` | Generate every LaTeX table and Figure 1 from `safeg_numbers.py` (no hand-typed numbers) | all tables, Fig. 1 |
+| `paper/verify_claims.py` | Recomputes the key numbers quoted in the text and checks them | – |
+| `paper/dump_outputs.py` | Re-creates `ieee.txt`, `ell.txt`, `ell_e3.txt`, `bs.txt` from the executed notebooks | – |
 
-- **Ablation study** with four feature sets (A → D) to isolate the pure contribution of graph features
-- **Three evaluation protocols**: Stratified K-Fold, GroupKFold (entity-level), Out-of-Time (temporal)
-- **Ten classifiers** compared: LR, NB, DT, KNN, SVM, RF, GBDT (HistGradientBoosting), XGBoost, LightGBM, MLP
-- **Statistical significance** tests: paired t-test, Wilcoxon signed-rank, Cohen's d
-- **SHAP-based feature attribution** for interpretability
-- **Class imbalance** strategies: None, RandomUnder, NearMiss, SMOTE, SMOTETomek
-- **Artifact audit** (PaySim lessons learned): single-feature AUC scan, rule detector, degeneration check
-- **Automated leak self-test** that verifies features depend on training fold
+Each notebook starts with a revision log (in Turkish) documenting every methodological change and its rationale.
 
----
+## Data
 
-## 🗂️ Project Structure
+The datasets are not redistributed.
 
-```
-├── README.md
-├── banksim_leakfree_v1.ipynb      # 🔑 Primary project — BankSim dataset
-├── ieee_cis_pipeline_v1.ipynb     #    Validation project — IEEE-CIS dataset
-└── data/
-    ├── bs140513_032310.csv         # BankSim raw data
-    ├── train_transaction.csv       # IEEE-CIS transaction data
-    ├── train_identity.csv          # IEEE-CIS identity data
-    ├── results_*.csv               # BankSim experiment results
-    ├── ieee_results_*.csv          # IEEE-CIS experiment results
-    ├── *_shap_importance.csv       # SHAP feature importance
-    ├── *_timing_analysis.json      # Inference timing benchmarks
-    ├── paper_tables_*.xlsx         # Paper-ready summary tables
-    └── ...
-```
+* **IEEE-CIS Fraud Detection** – `train_transaction.csv`, `train_identity.csv` from <https://www.kaggle.com/c/ieee-fraud-detection>; place them in the working directory.
+* **Elliptic++** – from the authors' repository <https://github.com/git-disl/EllipticPlusPlus>; the notebook downloads the folder with `gdown` if it is missing (`ELLIPTIC_DIR`).
+* **BankSim** – `bs140513_032310.csv` (Kaggle: *Synthetic data from a financial payment system*); place it in the working directory.
 
----
+## Running
 
-## 🔬 Methodology
+The notebooks were run on Google Colab (Python 3, CPU for the tabular grids, GPU for the GNNs). Set `USE_DRIVE = True`
+to keep checkpoints on Google Drive; with `RESUME = True` completed folds are reloaded. Approximate run times
+(FAST_MODE): IEEE-CIS ≈ 6–7 h, BankSim ≈ 4–5 h, Elliptic++ tabular ≈ 2 h, GNNs ≈ 30 min on a GPU.
 
-### Feature Set Design (Ablation Study)
-
-| Feature Set | Description | Purpose |
-|:-----------:|:------------|:--------|
-| **Set A** | Raw transaction features (amounts, categories, IDs, time deltas) | Baseline |
-| **Set B** | A + Behavioral aggregates (velocity, unique counts, avg amounts) | Measures behavioral contribution |
-| **Set C** | B + Graph features (centrality + community) | Full model |
-| **Set D** | A + Graph features only (no behavioral aggregates) | **Isolates pure graph contribution** |
-
-### Graph Construction
-
-The transaction graph is built **exclusively from training data** in each fold:
-
-- **BankSim**: Bipartite graph — Customer ↔ Merchant edges weighted by transaction count and total amount
-- **IEEE-CIS**: Multi-relational graph — `card1 ↔ addr1` and `card1 ↔ P_emaildomain` edges
-
-### Graph Features Extracted
-
-| Category | Features |
-|:---------|:---------|
-| **Centrality (Cat. 1)** | Weighted degree, PageRank, Betweenness centrality (sampled, k=300), Eigenvector centrality, Clustering coefficient |
-| **Community (Cat. 2)** | Louvain community ID, `community_fraud_rate` (from training labels only) |
-| **Behavioral (Cat. 3)** | Transaction count, avg/std/max amount, unique addresses, unique emails, time span, velocity, amount ratios |
-
-### Leak Prevention Protocol
-
-All of the following are computed **only from each fold's training partition**:
-
-1. **Graph construction** — only training transactions
-2. **Centrality metrics** — computed on the training graph
-3. **Louvain communities** — detected on the training graph
-4. **`community_fraud_rate`** — derived from training labels only
-5. **Behavioral aggregates** — calculated from training transactions
-6. **Missing value imputation** — training median/mode
-7. **Categorical encoding** — training-derived dictionary; unseen values → `-1`
-
-**Cold-start policy**: For unseen entities in the test set, centrality defaults to `0.0`, community to `-1`, `community_fraud_rate` to training prior, and aggregates to training median.
-
----
-
-## 📊 Evaluation Protocols
-
-| Protocol | Description | Leak Prevented |
-|:---------|:------------|:---------------|
-| **P1 — Stratified 5-Fold CV** | Standard random stratified split | Target leakage, look-ahead bias |
-| **P2 — GroupKFold** | Customer/card-based grouping — same entity never in both train and test | Entity leakage |
-| **P3 — Out-of-Time** | Temporal split (80/20) — train on past, test on future | Temporal leakage |
-
-### Metrics
-
-- Accuracy, Precision, Recall, F1-Score
-- AUC-ROC, PR-AUC (critical for imbalanced data)
-- MCC (Matthews Correlation Coefficient)
-- FPR (False Positive Rate)
-- Precision@1%, Recall@1%
-- Full confusion matrix (TP, FP, TN, FN)
-
----
-
-## 📈 Key Results
-
-### BankSim (Primary Project)
-
-**Dataset**: 594,643 transactions · 4,112 customers · 50 merchants · 7,200 fraud (1.21%) · Imbalance ratio 1:81
-
-#### Protocol 1 — Stratified 5-Fold CV (F1-Score)
-
-| Model | Set A (Raw) | Set B (A+Behavioral) | Set C (B+Graph) | Set D (A+Graph) | Δ(C−A) | Δ(D−A) |
-|:------|:-----------:|:--------------------:|:---------------:|:---------------:|:------:|:------:|
-| RF | 0.8025 | 0.8628 | **0.8705** | 0.8652 | +0.0680 | +0.0627 |
-| LightGBM | 0.8206 | 0.8391 | **0.8561** | 0.8521 | +0.0355 | +0.0315 |
-| MLP | 0.8012 | 0.8562 | **0.8615** | 0.8548 | +0.0603 | +0.0536 |
-| GBDT | 0.8185 | 0.8505 | 0.8481 | **0.8540** | +0.0296 | +0.0355 |
-| XGBoost | 0.8095 | 0.8423 | 0.8373 | 0.8388 | +0.0278 | +0.0293 |
-
-#### Protocol 3 — Out-of-Time (Best Model: MLP on Set C)
-
-```
-Precision: 0.8757  |  Recall: 0.8357  |  F1: 0.8553
-AUC-ROC:  0.9989  |  PR-AUC: 0.9339  |  MCC: 0.8540
-```
-
-### IEEE-CIS (Validation Project)
-
-**Dataset**: 590,540 transactions · 3.5% fraud rate · Real e-commerce data
-
-#### Protocol 1 — Stratified 5-Fold CV (F1-Score)
-
-| Model | Set A (Raw) | Set B (A+Behavioral) | Set C (B+Graph) | Set D (A+Graph) | Δ(D−A) |
-|:------|:-----------:|:--------------------:|:---------------:|:---------------:|:------:|
-| LightGBM | 0.3999 | 0.4188 | **0.4200** | 0.4144 | +0.0145 |
-| XGBoost | 0.4191 | 0.4263 | **0.4352** | 0.4310 | +0.0119 |
-| RF | **0.4224** | 0.4341 | 0.4277 | 0.4289 | +0.0065 |
-| MLP | 0.3136 | 0.3334 | **0.3385** | 0.3369 | +0.0233 |
-
-> **Key finding**: Graph features provide consistent but modest improvements in the leak-free IEEE-CIS pipeline. The contribution is smaller than in BankSim due to the dataset's inherent characteristics (25.4% single-transaction entities, sparser graph structure).
-
----
-
-## 🛡️ Artifact Audit (Lessons from PaySim)
-
-Before running experiments, an automated audit checks for data artifacts:
-
-| Check | Description | BankSim Result | IEEE-CIS Result |
-|:------|:------------|:---------------|:----------------|
-| **Single-feature AUC scan** | Any feature with AUC > 0.95 alone? | ✅ No artifact | ✅ No artifact (max 0.69) |
-| **Rule detector** | Simple threshold rules achieving high F1? | ✅ Rules insufficient | ✅ Best rule F1=0.18 |
-| **Degeneration check** | Behavioral aggregates collapsing to constants? | ✅ Information preserved | ✅ Aggregates carry info |
-
-**Comparison**: PaySim was rejected because a two-condition rule achieved F1=0.989 — the problem didn't require learning.
-
----
-
-## ⚡ Getting Started
-
-### Prerequisites
+To regenerate the manuscript tables from the executed notebooks:
 
 ```bash
-pip install pandas numpy networkx python-louvain scikit-learn xgboost lightgbm imbalanced-learn shap scipy matplotlib seaborn
+cd paper
+python dump_outputs.py ../notebooks/ieee_cis_pipeline_v11_D1.ipynb > ieee.txt
+python dump_outputs.py ../notebooks/elliptic_safeg_E4.ipynb       > ell.txt
+python dump_outputs.py ../notebooks/elliptic_safeg_E3_gnn.ipynb   > ell_e3.txt
+python dump_outputs.py ../notebooks/banksim_leakfree_v11_D1.ipynb > bs.txt
+python verify_claims.py
+python tables.py > tables.tex
+python figures.py
 ```
 
-### Dependencies
+## Determinism and fingerprints
 
-| Package | Purpose |
-|:--------|:--------|
-| `pandas`, `numpy` | Data manipulation |
-| `networkx` | Graph construction & centrality |
-| `python-louvain` | Community detection (Louvain) |
-| `scikit-learn` | ML models, metrics, preprocessing |
-| `xgboost` | XGBoost classifier |
-| `lightgbm` | LightGBM classifier |
-| `imbalanced-learn` | Class imbalance strategies (SMOTE, etc.) |
-| `shap` | Feature attribution |
-| `scipy` | Statistical tests |
-| `matplotlib`, `seaborn` | Visualization |
+Two sources of run-to-run variation were found and removed (manuscript Sect. 4.4):
 
-### Running the Notebooks
+1. **IEEE-CIS entity subsample.** Entities are sorted by identifier before the seeded sample is drawn; rows are
+   sorted stably by `(TransactionDT, TransactionID)`. Fingerprint: 200,000 rows, 6,764 positives, 73,965 entities,
+   SHA-1 of sorted TransactionIDs `8e8c441d93937f9fd8c3456e5be1469c63a5e1cf`.
+2. **Entity-grouped folds (P2).** Older scikit-learn versions assign equally sized groups to folds with an unstable
+   sort. `GroupKFoldDet` implements the algorithm of scikit-learn ≥ 1.7 `GroupKFold(shuffle=False)` with a stable
+   sort. P2 fold-assignment fingerprints (first 12 hex digits): IEEE-CIS `64f56d1834d0`, BankSim `7d2c4d05d580`.
 
-#### BankSim (Primary)
+BankSim data fingerprint: 594,643 rows, 7,200 positives, SHA-1 `728aa437723424422f63448c9d9b0579e47cb96d`.
+The notebooks write these fingerprints to the checkpoint directory and refuse to mix checkpoints from a different
+sample or split. Re-runs in fresh sessions reproduced the random and temporal protocols exactly (BankSim: all ten
+models; IEEE-CIS: tree models; MLP and logistic regression vary in the third decimal with the hardware).
 
-1. Place `bs140513_032310.csv` in the project root (or `data/` directory)
-2. Open `banksim_leakfree_v1.ipynb` in Jupyter / Google Colab
-3. Configure parameters at the top of the notebook:
+## Licence and citation
 
-```python
-FAST_MODE = True       # True: ~4h | False: ~7h (full results)
-SUBSAMPLE_N = None     # None → full data | 200000 → faster first run
-N_FOLDS = 5
-SEED = 42
-```
-
-4. Run all cells sequentially. Checkpoints are saved automatically for Colab crash recovery.
-
-#### IEEE-CIS (Validation)
-
-1. Place `train_transaction.csv` and `train_identity.csv` in the project root
-2. Open `ieee_cis_pipeline_v1.ipynb`
-3. Configure parameters:
-
-```python
-FAST_MODE = True
-SUBSAMPLE_N = 200000   # None → full 590K data (~6-8h)
-GRAPH_RELATIONS = [('card1','addr1'), ('card1','P_emaildomain')]
-```
-
-4. Run all cells. The IEEE-CIS pipeline includes the same leak-free protocol, artifact audit, and statistical tests.
-
-### Checkpoint / Resume
-
-Both notebooks support checkpoint-based resume for long runs (especially on Google Colab):
-
-```python
-CHECKPOINT_DIR = 'checkpoints'  # or 'checkpoints_ieee'
-RESUME = True                    # True: resume from last completed fold
-```
-
-For Google Drive persistence:
-```python
-from google.colab import drive; drive.mount('/content/drive')
-CHECKPOINT_DIR = '/content/drive/MyDrive/fraud_checkpoints'
-```
-
----
-
-## 📖 Notebook Sections
-
-### BankSim (`banksim_leakfree_v1.ipynb`)
-
-| # | Section | Description |
-|:-:|:--------|:------------|
-| 1 | Setup & Configuration | Install dependencies, set hyperparameters |
-| 2 | Data Loading & EDA | Load BankSim data, integrity checks, class distribution |
-| 3 | Graph Construction | Build bipartite Customer–Merchant graph (training-only) |
-| 4 | Feature Engineering | Compute centrality, community, behavioral aggregates (leak-free) |
-| 5 | Feature Sets & Metrics | Define A/B/C/D sets, comprehensive metric suite |
-| 6 | Protocol 1 — Stratified 5-Fold CV | Leak-free random cross-validation |
-| 7 | Protocol 2 — GroupKFold | Customer-based entity leakage prevention |
-| 8 | Protocol 3 — Out-of-Time | Temporal train/test split |
-| 9 | Protocol Comparison | Side-by-side F1 ablation tables + contribution decomposition |
-| 10 | Leak Self-Test | Automated verification that features depend on training fold |
-| 11 | Class Imbalance Strategies | None, RandomUnder, NearMiss, SMOTE, SMOTETomek |
-| 12 | Best Model Detailed Analysis | Confusion matrix, PR curve, threshold analysis |
-| 13 | Statistical Significance | Paired t-test, Wilcoxon, Cohen's d |
-| 14 | SHAP Feature Attribution | Per-category contribution breakdown |
-| 15 | Inference Timing | Algorithm-level latency, transactions/second |
-
-### IEEE-CIS (`ieee_cis_pipeline_v1.ipynb`)
-
-| # | Section | Description |
-|:-:|:--------|:------------|
-| 1 | Setup & Configuration | Parameters, graph relation definitions |
-| 2 | Data Loading | Load & merge transaction + identity tables, memory optimization |
-| 3 | Prevalence-Preserving Sampling | Random subsample that maintains original fraud rate |
-| 4 | Raw Feature Groups | Define A_NUMERIC, A_CATEGORICAL, D columns, Vesta C columns |
-| 5 | Leak-Free Feature Computation (Core) | `compute_fold_features()` — all features from training only |
-| 6 | Feature Sets & Metrics | A/B/C/D + Vesta C reference set |
-| 7 | Artifact Audit | Single-feature AUC, rule detector, degeneration check |
-| 8 | Leak Self-Test | Automated leak verification |
-| 9-12 | Three Evaluation Protocols | Same as BankSim: Stratified, GroupKFold, Out-of-Time |
-| 13 | Statistical Significance | Paired tests with Cohen's d effect sizes |
-| 14 | Class Imbalance | Sampling strategy comparison |
-| 15 | Best Model Analysis | Detailed metrics, confusion matrix, PR curve |
-| 16 | SHAP Attribution | Feature importance by category |
-| 17 | Timing Analysis | Inference performance benchmarks |
-
----
-
-## 🔧 Configuration Reference
-
-| Parameter | Default | Description |
-|:----------|:--------|:------------|
-| `SEED` | 42 | Random seed for reproducibility |
-| `N_FOLDS` | 5 | Number of cross-validation folds |
-| `FAST_MODE` | True | Use fewer estimators for speed |
-| `SUBSAMPLE_N` | None | Subsample size (None = full data) |
-| `BETWEENNESS_K` | 300 | Betweenness centrality sampling size |
-| `TEMPORAL_CUT` | 144 (BankSim) / 80th percentile (IEEE-CIS) | Train/test temporal boundary |
-| `KNN_TRAIN_CAP` | 50,000 | Max training samples for KNN (quadratic scaling) |
-| `SAMPLING_FOLDS` | 3 | Folds for class imbalance experiments |
-| `THRESHOLD_MODE` | 'tuned' | F1-maximizing threshold from validation subset |
-
----
-
-## 📝 Citation
-
-If you use this code in your research, please cite:
-
-```
-@article{graphml-fraud-detection,
-  title={Graph-Based Feature Engineering for Financial Fraud Detection: A Leak-Free Evaluation},
-  year={2026}
-}
-```
-
----
-
-## 📄 License
-
-This project is intended for academic and research purposes.
-
----
-
-## 🙏 Acknowledgments
-
-- **BankSim** dataset — Lopez-Rojas et al.
-- **IEEE-CIS Fraud Detection** dataset — Vesta Corporation / IEEE Computational Intelligence Society
-- **NetworkX** — Graph analysis library
-- **python-louvain** — Community detection
-- **SHAP** — Explainable AI
+Code repository: <https://github.com/cihatyldz/graph_fraud_detection> (see the repository for the licence).
+Please cite the manuscript and this archive (Zenodo DOI).
